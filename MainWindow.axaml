@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+        MinWidth="1100" MinHeight="720"
+        Width="1100" Height="720"
+        x:Class="rec_tool.MainWindow"
+        Title="Rec Tool by @meltedm_">
+    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+        <Button x:Name="StartServer" Content="Start Server" Click="StartServer_OnClick"></Button>
+        <Label x:Name="IpInfo" Content="Current IP: None"></Label>
+        <Label x:Name="HidContent" Content="Waiting for data..."></Label>
+    </StackPanel>
+</Window>
