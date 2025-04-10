@@ -1,83 +1,95 @@
 using System;
-using System.Diagnostics;
-using Server;
-using System.Net;
-using System.Timers;
 using Avalonia.Controls;
-using System.Net.Sockets;
-using Avalonia.Interactivity;
+using System.Diagnostics;
 using Avalonia.Threading;
+using Avalonia.Interactivity;
 
 namespace rec_tool;
 
 public partial class MainWindow : Window
 {
-    private DispatcherTimer _updateTimer;
-    private Stopwatch _stopwatch = new();
-    private int _frameCount = 0;
+    private DispatcherTimer? _updateTimer;
+    private DispatcherTimer? _sampleCountTimer;
+    private readonly Stopwatch _stopwatch = new();
+    private int _lastSamplesCount = 0;
+    private int _fullSamplesCount = 0;
+    private int _samplesPerSecond;
+    private Server? _server;
 
     public MainWindow()
     {
         InitializeComponent();
         SetupSampleCallLoop();
     }
-
-    private void StartServer_OnClick(object? sender, RoutedEventArgs e)
-    {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
-        {
-            if (ip.AddressFamily != AddressFamily.InterNetwork) continue;
-            Middleware.DancerServer.Connect(ip.ToString(), 14444);
-            StartServer.IsEnabled = false;
-            IpInfo.Content = $"Current Ip: {ip}";
-            break;
-        }
-    }
-
+    
     private void SetupSampleCallLoop()
     {
         _updateTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(1000.0 / 120)
         };
-        _updateTimer.Tick += (sender, args) => CallSample();
+        _updateTimer.Tick += (_, _) => CallSample();
         _updateTimer.Start();
+        
+        _sampleCountTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(1000.0)
+        };
+        _sampleCountTimer.Tick += (_, _) => UpdateSamplesPerSecond();
+        _sampleCountTimer.Start();
+        
         _stopwatch.Start();
     }
-
+    
     private void CallSample()
     {
-        //if (!_dancerServer.Connected) return;
+        if (_server is not null && _server.ExceptionCalled)
+        {
+            _server.Dispose();
+            _server = null;
+            StartServer.Content = "Start Server";
+            ServerDataInfo.Content = "Waiting for server...";
+            return;
+        }
+        
+        if (_server is null || !_server.Connected) return;
 
-        //if (NetworkDataIsNull())
-        //{
-        //    HidContent.Content = "Waiting for data...";
-        //    return;
-        //}
+        var masterString = string.Empty;
 
-        var uiTextString = "";
-
-        uiTextString += $"\nRaw Data: {Middleware.DancerServer.RawData}";
-        uiTextString +=
-            $"\nAcceleration: {Middleware.DancerServer.NetworkData.AccelX}, {Middleware.DancerServer.NetworkData.AccelY}, {Middleware.DancerServer.NetworkData.AccelZ}";
-        uiTextString +=
-            $"\nAngle: {Middleware.DancerServer.NetworkData.GyroX}, {Middleware.DancerServer.NetworkData.GyroY}, {Middleware.DancerServer.NetworkData.GyroZ}";
-
-        HidContent.Content = uiTextString;
-
-        _frameCount++;
-        HidContent.Content += $"\nSamples Call Count: {_frameCount}";
+        masterString += $"RawData: {_server.RawData} | Cut Data: ";
+        
+        ServerDataInfo.Content = masterString;
     }
 
-    private bool NetworkDataIsNull()
+    private void UpdateSamplesPerSecond()
     {
-        if (Middleware.DancerServer.NetworkData.AccelX != 0) return false;
-        if (Middleware.DancerServer.NetworkData.AccelY != 0) return false;
-        if (Middleware.DancerServer.NetworkData.AccelZ != 0) return false;
-        if (Middleware.DancerServer.NetworkData.GyroX != 0) return false;
-        if (Middleware.DancerServer.NetworkData.GyroY != 0) return false;
-        if (Middleware.DancerServer.NetworkData.GyroZ != 0) return false;
-        return true;
+        _samplesPerSecond = _fullSamplesCount - _lastSamplesCount;
+    }
+
+    private void StartServer_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_server is not null && !_server.Connected || _server is not null && _server.ExceptionCalled)
+        {
+            _server.Dispose();
+            _server = null;
+            StartServer.Content = "Start Server";
+            ServerDataInfo.Content = "Waiting for server...";
+            return;
+        }
+        
+        if (_server is null)
+        {
+            _server = new Server("192.168.1.3", 14444);
+            StartServer.Content = "Stop Server";
+            ServerDataInfo.Content = "Listening at 192.168.1.3 - Waiting for data...";
+            return;
+        }
+
+        if (!_server.Connected) return;
+        
+        _server.Dispose();
+        _server = null;
+        StartServer.Content = "Start Server";
+        ServerDataInfo.Content = "Waiting for server...";
     }
 }

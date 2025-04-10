@@ -3,90 +3,67 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
-using Newtonsoft.Json;
 
-#pragma warning disable CS8601 // Possible null reference assignment.
-#pragma warning disable SYSLIB0006
+namespace rec_tool;
 
-// ReSharper disable EmptyGeneralCatchClause
-// ReSharper disable AsyncVoidMethod
-
-namespace Server;
-
-public static class Middleware
+public class Server : IDisposable
 {
-    public static DancerServer DancerServer { get; private set; } = new();
-}
-
-public class DancerServer
-{
-    private TcpListener tcpListener;
-    private TcpClient tcpClient;
-    private Thread listenerThread;
-    private string localIP;
-    private int localPort;
+    private TcpListener? _tcpListener;
+    private TcpClient? _tcpClient;
+    private readonly Thread _listenerThread;
+    private readonly string _localIp;
+    private readonly int _localPort;
+    private bool _breakThread = false;
 
     public bool Connected = false;
-    public bool BreakThread = false;
-    public bool ThreadBreaked = false;
-    public bool IsQuitting = false;
+    public bool ExceptionCalled = false;
+    public bool ThreadBroken = false;
 
     public string RawData = "Waiting for raw data...";
 
-    public NetworkData NetworkData = new()
-    {
-        AccelX = 0,
-        AccelY = 0,
-        AccelZ = 0,
-        GyroX = 0,
-        GyroY = 0,
-        GyroZ = 0
-    };
+    public NetworkData NetworkData = new();
 
-    public void Connect(string ip, int port)
+    public Server(string ip, int port)
     {
-        localIP = ip;
-        localPort = port;
-        listenerThread = new Thread(Listen)
+        _localIp = ip;
+        _localPort = port;
+        _listenerThread = new Thread(Listen)
         {
             IsBackground = true
         };
-        listenerThread.Start();
+        _listenerThread.Start();
     }
-
-    public void Disconnect()
+    
+    public void Dispose()
     {
-        tcpListener.Stop();
-        listenerThread.Abort();
-        ThreadBreaked = false;
+        _breakThread = true;
+        ThreadBroken = false;
+        _tcpListener?.Stop();
+        _tcpClient?.Close();
+        _listenerThread?.Join();
+        GC.SuppressFinalize(this);
     }
 
-    private async void Listen()
+    private void Listen()
     {
         try
         {
-            tcpListener = new TcpListener(IPAddress.Parse(localIP), localPort);
-            tcpListener.Start();
+            _tcpListener = new TcpListener(IPAddress.Parse(_localIp), _localPort);
+            _tcpListener.Start();
             var bytes = new byte[150];
             while (true)
             {
-                using (tcpClient = await tcpListener.AcceptTcpClientAsync())
+                using (_tcpClient = _tcpListener.AcceptTcpClient())
                 {
-                    using var stream = tcpClient.GetStream();
+                    using var stream = _tcpClient.GetStream();
                     int length;
                     while ((length = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
                         var incomingData = new byte[length];
                         Array.Copy(bytes, 0, incomingData, 0, length);
                         var clientMessage = Encoding.UTF8.GetString(incomingData);
-                        RawData = clientMessage;
-                        try
-                        {
-                            NetworkData = JsonConvert.DeserializeObject<NetworkData>(clientMessage.Replace("*", ""));
-                        }
-                        catch
-                        {
-                        }
+                        
+                        // Treat received data here...
 
                         if (!Connected)
                         {
@@ -94,46 +71,40 @@ public class DancerServer
                             Connected = true;
                         }
 
-                        if (!BreakThread) continue;
+                        if (!_breakThread) continue;
                         SendMessage("1");
                         break;
                     }
 
-                    if (!BreakThread) continue;
-                    tcpListener.Stop();
-                    tcpClient.Close();
+                    if (!_breakThread) continue;
+                    _tcpListener.Stop();
+                    _tcpClient.Close();
                     Connected = false;
-                    BreakThread = false;
-                    ThreadBreaked = true;
+                    _breakThread = false;
+                    ThreadBroken = true;
                     break;
                 }
             }
         }
-        catch (SocketException socketException)
+        catch (Exception)
         {
-            //Debug.LogError("SocketException " + socketException.ToString());
-        }
-        catch (ObjectDisposedException disposedException)
-        {
+            ExceptionCalled = true;
         }
     }
 
-    public void SendMessage(string networkMessage)
+    private void SendMessage(string networkMessage)
     {
         try
         {
-            var stream = tcpClient.GetStream();
+            if (_tcpClient is null) return;
+            var stream = _tcpClient.GetStream();
             if (!stream.CanWrite) return;
             var message = Encoding.UTF8.GetBytes(networkMessage);
             stream.Write(message, 0, message.Length);
         }
-        catch (SocketException socketException)
+        catch (Exception)
         {
-            //Debug.LogError("SocketException " + socketException.ToString());
-        }
-        catch (ObjectDisposedException disposedException)
-        {
-            // The famous brazilian "try catch cala a boca"
+            ExceptionCalled = true;
         }
     }
 }

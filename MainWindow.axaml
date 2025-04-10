@@ -7,9 +7,30 @@
         Width="1100" Height="720"
         x:Class="rec_tool.MainWindow"
         Title="Rec Tool by @meltedm_">
-    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
-        <Button x:Name="StartServer" Content="Start Server" Click="StartServer_OnClick"></Button>
-        <Label x:Name="IpInfo" Content="Current IP: None"></Label>
-        <Label x:Name="HidContent" Content="Waiting for data..."></Label>
-    </StackPanel>
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <Grid DockPanel.Dock="Top" Height="40" ColumnDefinitions="*,Auto,Auto" Margin="5">
+                <Menu Grid.Column="0">
+                    <MenuItem Header="File">
+                        <MenuItem Header="Open" />
+                        <MenuItem Header="Save" />
+                        <Separator />
+                        <MenuItem Header="Exit" />
+                    </MenuItem>
+                    <MenuItem Header="View" />
+                    <MenuItem Header="Tools" />
+                    <MenuItem Header="About" />
+                </Menu>
+                <Label x:Name="ServerDataInfo"
+                       VerticalAlignment="Center" Margin="0,3,0,0">
+                </Label>
+                <Button x:Name="StartServer" Grid.Column="2" Content="Start Server" Click="StartServer_OnClick"
+                        Margin="5,0" VerticalAlignment="Center" />
+            </Grid>
+            <StackPanel Margin="5">
+                <Label x:Name="IpInfo" Content="Current IP: None" />
+                <Label x:Name="HidContent" Content="Waiting for data..." />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
 </Window>
