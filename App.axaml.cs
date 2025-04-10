@@ -1,6 +1,6 @@
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace rec_tool;
 

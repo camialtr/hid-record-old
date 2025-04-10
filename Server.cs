@@ -13,15 +13,12 @@ public class Server : IDisposable
     private readonly Thread _listenerThread;
     private readonly string _localIp;
     private readonly int _localPort;
-    private bool _breakThread = false;
+    private bool _breakThread;
 
-    public bool Connected = false;
-    public bool ExceptionCalled = false;
-    public bool ThreadBroken = false;
+    public bool Connected;
+    public bool ExceptionCalled;
 
-    public string RawData = "Waiting for raw data...";
-
-    public NetworkData NetworkData = new();
+    public readonly NetworkData NetworkData = new();
 
     public Server(string ip, int port)
     {
@@ -37,10 +34,9 @@ public class Server : IDisposable
     public void Dispose()
     {
         _breakThread = true;
-        ThreadBroken = false;
         _tcpListener?.Stop();
         _tcpClient?.Close();
-        _listenerThread?.Join();
+        _listenerThread.Join();
         GC.SuppressFinalize(this);
     }
 
@@ -50,7 +46,7 @@ public class Server : IDisposable
         {
             _tcpListener = new TcpListener(IPAddress.Parse(_localIp), _localPort);
             _tcpListener.Start();
-            var bytes = new byte[150];
+            var bytes = new byte[59];
             while (true)
             {
                 using (_tcpClient = _tcpListener.AcceptTcpClient())
@@ -63,7 +59,17 @@ public class Server : IDisposable
                         Array.Copy(bytes, 0, incomingData, 0, length);
                         var clientMessage = Encoding.UTF8.GetString(incomingData);
                         
-                        // Treat received data here...
+                        var dataArray = clientMessage.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                        
+                        if (dataArray.Length == 6)
+                        {
+                            NetworkData.AccelX = float.Parse(dataArray[0], System.Globalization.CultureInfo.InvariantCulture);
+                            NetworkData.AccelY = float.Parse(dataArray[1], System.Globalization.CultureInfo.InvariantCulture);
+                            NetworkData.AccelZ = float.Parse(dataArray[2], System.Globalization.CultureInfo.InvariantCulture);
+                            NetworkData.GyroX = float.Parse(dataArray[3], System.Globalization.CultureInfo.InvariantCulture);
+                            NetworkData.GyroY = float.Parse(dataArray[4], System.Globalization.CultureInfo.InvariantCulture);
+                            NetworkData.GyroZ = float.Parse(dataArray[5], System.Globalization.CultureInfo.InvariantCulture);
+                        }
 
                         if (!Connected)
                         {
@@ -81,7 +87,6 @@ public class Server : IDisposable
                     _tcpClient.Close();
                     Connected = false;
                     _breakThread = false;
-                    ThreadBroken = true;
                     break;
                 }
             }
