@@ -1,10 +1,8 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading;
 using System.Net.Sockets;
 
-namespace rec_tool;
+namespace rec_tool.Models;
 
 public class Server : IDisposable
 {
@@ -30,7 +28,7 @@ public class Server : IDisposable
         };
         _listenerThread.Start();
     }
-    
+
     public void Dispose()
     {
         _breakThread = true;
@@ -58,9 +56,9 @@ public class Server : IDisposable
                         var incomingData = new byte[length];
                         Array.Copy(bytes, 0, incomingData, 0, length);
                         var clientMessage = Encoding.UTF8.GetString(incomingData);
-                        
+
                         var dataArray = clientMessage.Split('|', StringSplitOptions.RemoveEmptyEntries);
-                        
+
                         if (dataArray.Length == 6)
                         {
                             NetworkData.AccelX = float.Parse(dataArray[0], System.Globalization.CultureInfo.InvariantCulture);

@@ -1,8 +1,8 @@
-using System;
-using Avalonia.Controls;
+﻿using System.Windows;
+using rec_tool.Models;
 using System.Diagnostics;
-using Avalonia.Threading;
-using Avalonia.Interactivity;
+using System.Windows.Threading;
+using LibVLCSharp.Shared;
 
 namespace rec_tool;
 
@@ -14,12 +14,22 @@ public partial class MainWindow : Window
     private int _lastSamplesCount;
     private int _fullSamplesCount;
     private int _samplesPerSecond;
+
     private Server? _server;
+
+    private LibVLC _libVLC;
+    private MediaPlayer _mediaPlayer;
 
     public MainWindow()
     {
         InitializeComponent();
         SetupSampleCallLoop();
+
+        Core.Initialize();
+
+        _libVLC = new LibVLC();
+        _mediaPlayer = new MediaPlayer(_libVLC);
+        VideoView.MediaPlayer = _mediaPlayer;
     }
 
     private void SetupSampleCallLoop()
@@ -57,7 +67,7 @@ public partial class MainWindow : Window
         var masterString = string.Empty;
 
         var lNd = _server.NetworkData;
-        
+
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
         var accelY = $"{lNd.AccelY:F9}".PadRight(9, '0')[..9];
         var accelZ = $"{lNd.AccelZ:F9}".PadRight(9, '0')[..9];
@@ -69,7 +79,7 @@ public partial class MainWindow : Window
             $"Accel - X: {accelX} Y: {accelY} Z: {accelZ} | Angle: {angleX} {angleY} {angleZ} | SPS: {_samplesPerSecond}";
 
         ServerDataInfo.Content = masterString;
-        
+
         _fullSamplesCount++;
     }
 
@@ -92,9 +102,9 @@ public partial class MainWindow : Window
 
         if (_server is null)
         {
-            _server = new Server(Settings.CurrentIp, 14444);
+            _server = new Server(App.Settings.CurrentIp, 14444);
             StartServer.Content = "Stop Server";
-            ServerDataInfo.Content = $"Listening at {Settings.CurrentIp} - Waiting for data...";
+            ServerDataInfo.Content = $"Listening at {App.Settings.CurrentIp} - Waiting for data...";
             return;
         }
 
@@ -106,9 +116,15 @@ public partial class MainWindow : Window
         ServerDataInfo.Content = "Waiting for server...";
     }
 
-    private void MenuItem_OnClick(object? sender, RoutedEventArgs e)
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        var settingsWindow = new SettingsWindow();
-        settingsWindow.Show();
+        Application.Current.Shutdown();
+    }
+
+    private void PlayVideo_Click(object sender, RoutedEventArgs e)
+    {
+        VideoView.Visibility = Visibility.Visible;
+        using var media = new Media(_libVLC, @"C:\Users\Administrator\Documents\Repositories\mad.webm");
+        _mediaPlayer.Play(media);
     }
 }
