@@ -29,6 +29,7 @@ public partial class MainWindow : Window
 
         _libVLC = new LibVLC();
         _mediaPlayer = new MediaPlayer(_libVLC);
+        _mediaPlayer.TimeChanged += (_, _) => MediaPlayer_TimeChanged();
         VideoView.MediaPlayer = _mediaPlayer;
     }
 
@@ -126,5 +127,17 @@ public partial class MainWindow : Window
         VideoView.Visibility = Visibility.Visible;
         using var media = new Media(_libVLC, @"C:\Users\Administrator\Documents\Repositories\mad.webm");
         _mediaPlayer.Play(media);
+    }
+
+    private void MediaPlayer_TimeChanged()
+    {
+        try
+        {
+            TimeLabel.Dispatcher.Invoke(() =>
+            {
+                TimeLabel.Content = $"Map Time: {_mediaPlayer.Time / 1000:F2}ms / {_mediaPlayer.Length / 1000:F2}ms";
+            });
+        }
+        catch (Exception) { }
     }
 }
