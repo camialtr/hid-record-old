@@ -52,7 +52,7 @@
                             ValueChanged="TimeSlider_ValueChanged" Opacity="0.25" />
                     <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button x:Name="PlayButton" Content="Play Video" Grid.Row="1" Click="PlayVideo_Click" IsEnabled="False" />
-                        <Button x:Name="StartRecording" Content="Start Recording" Grid.Row="1" Click="StartRecording_Click" Margin="10,0,10,0" IsEnabled="False" />
+                        <Button x:Name="StartRecording" Content="Start Recording" Grid.Row="1" Click="StartRecording_Click" Margin="5,0,10,0" IsEnabled="False" />
                         <Label x:Name="TimeLabel" Content="Map Time: 00:00ms / 00:00ms" VerticalContentAlignment="Center" />
                     </StackPanel>
                     <Label Content="Generated RECS" Height="30" Grid.Row="3" />
