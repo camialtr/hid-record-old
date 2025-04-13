@@ -1,14 +1,11 @@
-﻿using System.Windows;
-using rec_tool.Models;
-using System.Diagnostics;
-using System.Windows.Threading;
-using LibVLCSharp.Shared;
-using System.Text.Json;
-using System.IO;
-using System.Collections.ObjectModel;
+﻿using System.IO;
+using System.Windows;
 using Microsoft.Win32;
-
-#pragma warning disable CS8601
+using rec_tool.Models;
+using System.Text.Json;
+using System.Diagnostics;
+using LibVLCSharp.Shared;
+using System.Windows.Threading;
 
 namespace rec_tool;
 
@@ -23,20 +20,18 @@ public partial class MainWindow : Window
 
     private Server? _server;
 
-    private LibVLC _libVLC;
-    private MediaPlayer _mediaPlayer;
+    private readonly LibVLC _libVLC;
+    private readonly MediaPlayer _mediaPlayer;
+    private readonly LibVLC _audioLibVLC;
+    private readonly MediaPlayer _audioMediaPlayer;
 
-    public ObservableCollection<LittleTest> LittleTestList;
+    private MusicTrack? _musicTrack;
 
-    private MusicTrack _musicTrack;
-
-    private float _mapTime;
     private float _minMapTime;
     private float _maxMapTime;
     private float _videoStartTime;
-    private float _swIntervalFactor;
 
-    private string _projectFolderName;
+    private string? _projectFolderName;
 
     public MainWindow()
     {
@@ -47,8 +42,10 @@ public partial class MainWindow : Window
 
         _libVLC = new LibVLC();
         _mediaPlayer = new MediaPlayer(_libVLC);
-        _mediaPlayer.TimeChanged += (_, _) => MediaPlayer_TimeChanged();
         VideoView.MediaPlayer = _mediaPlayer;
+
+        _audioLibVLC = new LibVLC();
+        _audioMediaPlayer = new MediaPlayer(_audioLibVLC);
     }
 
     private void SetupSampleCallLoop()
@@ -72,16 +69,6 @@ public partial class MainWindow : Window
     {
         if (_mediaPlayer.IsPlaying)
         {
-            var time = (_stopwatch.ElapsedMilliseconds / 1000f) +_swIntervalFactor;
-            if (time > _maxMapTime)
-            {
-                _mediaPlayer.Pause();
-                _stopwatch.Stop();
-                PlayButton.Content = "Play Video";
-                TimeSlider.IsEnabled = true;
-                TimeSlider.Opacity = 1.0;
-            }
-            TimeLabel.Content = $"Map Time: {time:F2}ms / {_maxMapTime}ms";
         }
 
         if (_server is not null && _server.ExceptionCalled)
@@ -133,7 +120,7 @@ public partial class MainWindow : Window
 
         if (_server is null)
         {
-            _server = new Server(App.Settings.CurrentIp, 14444);
+            _server = new Server(App.Settings!.CurrentIp, 14444);
             StartServer.Content = "Stop Server";
             ServerDataInfo.Content = $"Listening at {App.Settings.CurrentIp} - Waiting for data...";
             return;
@@ -152,57 +139,8 @@ public partial class MainWindow : Window
         Application.Current.Shutdown();
     }
 
-    private void PlayVideo_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_mediaPlayer.IsPlaying)
-        {
-            var media = new Media(_libVLC, @$"{_projectFolderName}\video.webm");
-            _mediaPlayer.Play(media);
-            _mediaPlayer.Time = (long)Convert.ToDouble(TimeSlider.Value * 1000f);
-            _swIntervalFactor = _mapTime;
-            _stopwatch.Restart();
-            PlayButton.Content = "Pause Video";
-            TimeSlider.IsEnabled = false;
-            TimeSlider.Opacity = 0.25;
-        }
-        else
-        {
-            _mediaPlayer.Pause();
-            _stopwatch.Stop();
-            PlayButton.Content = "Play Video";
-            TimeSlider.IsEnabled = true;
-            TimeSlider.Opacity = 1.0;
-        }
-    }
-
-    private void MediaPlayer_TimeChanged()
-    {
-        if (!_mediaPlayer.IsPlaying) return;
-
-        try
-        {
-            //Apply Map Time from Video Time
-            TimeLabel.Dispatcher.Invoke(() =>
-            {
-                _mapTime = (_mediaPlayer.Time / 1000) - _videoStartTime;
-                TimeSlider.Value = _mapTime;
-            });
-        }
-        catch (Exception) { }
-    }
-
     private void StartRecording_Click(object sender, RoutedEventArgs e)
     {
-        MusicTrack mt = JsonSerializer.Deserialize<MusicTrack>(File.ReadAllText(@"C:\Users\Administrator\Documents\Testing Projects\Rec Tool\Mad\musictrack.json"));
-
-        LittleTestList = new();
-
-        foreach (int marker in mt.COMPONENTS[0].trackData.structure.markers)
-        {
-            LittleTestList.Add(new() { TestInt = marker, TestString = "AAAAAAAAAAAAAAAAA" });
-        }
-
-        RecordedDataContext.ItemsSource = LittleTestList;
     }
 
     private async void Open_Click(object sender, RoutedEventArgs e)
@@ -233,55 +171,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        _videoStartTime = float.Parse(_musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""));
+        _videoStartTime = _musicTrack?.COMPONENTS?[0]?.trackData?.structure?.videoStartTime != null
+            ? float.Parse(_musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""))
+            : 0f;
 
         var media = new Media(_libVLC, @$"{dialog.FolderName}\video.webm");
         _mediaPlayer.Play(media);
         VideoView.Visibility = Visibility.Visible;
+        var audio = new Media(_audioLibVLC, @$"{dialog.FolderName}\audio.ogg");
+        _audioMediaPlayer.Play(audio);
         await Task.Delay(100);
         _mediaPlayer.Pause();
+        _audioMediaPlayer.Pause();
+        _audioMediaPlayer.Time = 0;
 
-        TimeLabel.Dispatcher.Invoke(() =>
-        {
-            _mapTime = 0 - _videoStartTime;
-            _minMapTime = 0 - _videoStartTime;
-            _maxMapTime = (_mediaPlayer.Length / 1000f) - _videoStartTime;
-            TimeSlider.Maximum = _maxMapTime;
-            TimeSlider.Minimum = _minMapTime;
-            TimeSlider.Value = _mapTime;
-            _mediaPlayer.Time = (long)Convert.ToDouble(TimeSlider.Value * 1000f);
-        });        
+        _minMapTime = 0 - _videoStartTime;
+        _maxMapTime = (_mediaPlayer.Length / 1000f) - _videoStartTime;
+
+        TimeLabel.Content = $"Map Time: {(_stopwatch.ElapsedMilliseconds / 1000f) - _videoStartTime:F2}ms / {_maxMapTime:F2}ms ";
 
         _mediaPlayer.NextFrame();
 
-        TimeSlider.Opacity = 1.0;
-        TimeSlider.Visibility = Visibility.Visible;
-        TimeSlider.IsEnabled = true;
         StartRecording.IsEnabled = true;
-        PlayButton.IsEnabled = true;
         StartServer.IsEnabled = true;
     }
-
-    private void TimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        if (_mediaPlayer.IsPlaying) return;
-
-        TimeLabel.Dispatcher.Invoke(() =>
-        {
-            TimeLabel.Dispatcher.Invoke(() =>
-            {
-                _mediaPlayer.Time = (long)Convert.ToDouble((TimeSlider.Value) * 1000f);
-                _mapTime = (float)TimeSlider.Value;
-                TimeLabel.Content = $"Map Time: {((_mediaPlayer.Time / 1000f - _videoStartTime)):F2}ms / {_maxMapTime}ms";
-            });
-        });
-
-        _mediaPlayer.NextFrame();
-    }
-}
-
-public class LittleTest
-{
-    public int TestInt { get; set; }
-    public string TestString { get; set; }
 }

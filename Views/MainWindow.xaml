@@ -41,22 +41,18 @@
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0" Margin="0,0,10,0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="321*"/>
-                        <RowDefinition Height="30*"/>
+                        <RowDefinition Height="349*"/>
                         <RowDefinition Height="35*"/>
                         <RowDefinition Height="20*"/>
-                        <RowDefinition Height="246*"/>
+                        <RowDefinition Height="245*"/>
                     </Grid.RowDefinitions>
-                    <vlc:VideoView x:Name="VideoView" Grid.Row="0" Visibility="Hidden" />
-                    <Slider x:Name="TimeSlider" Maximum="100" Minimum="0" Orientation="Horizontal" Grid.Row="1" IsEnabled="False"
-                            ValueChanged="TimeSlider_ValueChanged" Opacity="0.25" />
-                    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Button x:Name="PlayButton" Content="Play Video" Grid.Row="1" Click="PlayVideo_Click" IsEnabled="False" />
+                    <vlc:VideoView x:Name="VideoView" Grid.Row="0" Visibility="Hidden" Margin="0,0,0,30" />
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button x:Name="StartRecording" Content="Start Recording" Grid.Row="1" Click="StartRecording_Click" Margin="5,0,10,0" IsEnabled="False" />
                         <Label x:Name="TimeLabel" Content="Map Time: 00:00ms / 00:00ms" VerticalContentAlignment="Center" />
                     </StackPanel>
-                    <Label Content="Generated RECS" Height="30" Grid.Row="3" />
-                    <DataGrid x:Name="RECSDataContext" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.Row="4" Margin="0,10,0,0"/>
+                    <Label Content="Generated RECS" Height="30" Grid.Row="2"/>
+                    <DataGrid x:Name="RECSDataContext" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.Row="3" Margin="0,10,0,0"/>
                 </Grid>
                 <Grid Grid.Column="1" Margin="0,0,0,0">
                     <Grid.RowDefinitions>

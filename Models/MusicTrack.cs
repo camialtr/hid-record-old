@@ -1,5 +1,7 @@
 ﻿namespace rec_tool.Models;
 
+#pragma warning disable CS8618
+
 public class MusicTrack
 {
     public string __class { get; set; }
