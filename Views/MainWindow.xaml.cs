@@ -167,12 +167,20 @@ public partial class MainWindow : Window
             ? float.Parse(_musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""))
             : 0f;
 
+        var startBeatIdx = _musicTrack?.COMPONENTS?[0]?.trackData?.structure?.startBeat != null
+            ? float.Parse(_musicTrack.COMPONENTS[0].trackData.structure.startBeat.ToString().Replace("-", ""))
+            : 0f;
+
+        var startBeat = _musicTrack?.COMPONENTS?[0]?.trackData?.structure ?.markers?[(int)startBeatIdx] != null
+            ? _musicTrack.COMPONENTS[0].trackData.structure.markers[(int)startBeatIdx]
+            : 0f;
+
         var videoPath = Path.Combine(_projectFolderName!, "video");
         var audioPath = Path.Combine(_projectFolderName!, "audio");
 
         var media = new Media(_libVLC, videoPath, FromType.FromPath,
         [
-            $":audio-desync={_videoStartTime * 1000f}"
+            $":audio-desync={(_videoStartTime - (startBeat / 48000f)) * 1000f}"
         ]);
 
         await media.Parse(MediaParseOptions.ParseLocal);
