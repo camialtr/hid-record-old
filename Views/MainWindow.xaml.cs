@@ -2,7 +2,7 @@
 using System.Windows;
 using Microsoft.Win32;
 using rec_tool.Models;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Diagnostics;
 using LibVLCSharp.Shared;
 using System.Windows.Threading;
@@ -21,9 +21,7 @@ public partial class MainWindow : Window
     private Server? _server;
 
     private readonly LibVLC _libVLC;
-    private readonly MediaPlayer _mediaPlayer;
-    private readonly LibVLC _audioLibVLC;
-    private readonly MediaPlayer _audioMediaPlayer;
+    private MediaPlayer _mediaPlayer;
 
     private MusicTrack? _musicTrack;
 
@@ -43,9 +41,6 @@ public partial class MainWindow : Window
         _libVLC = new LibVLC();
         _mediaPlayer = new MediaPlayer(_libVLC);
         VideoView.MediaPlayer = _mediaPlayer;
-
-        _audioLibVLC = new LibVLC();
-        _audioMediaPlayer = new MediaPlayer(_audioLibVLC);
     }
 
     private void SetupSampleCallLoop()
@@ -67,10 +62,6 @@ public partial class MainWindow : Window
 
     private void CallSample()
     {
-        if (_mediaPlayer.IsPlaying)
-        {
-        }
-
         if (_server is not null && _server.ExceptionCalled)
         {
             _server.Dispose();
@@ -140,7 +131,8 @@ public partial class MainWindow : Window
     }
 
     private void StartRecording_Click(object sender, RoutedEventArgs e)
-    {
+    {        
+        _mediaPlayer.Play();
     }
 
     private async void Open_Click(object sender, RoutedEventArgs e)
@@ -155,7 +147,7 @@ public partial class MainWindow : Window
         var folder = dialog.FolderName;
         _projectFolderName = folder;
 
-        if (!File.Exists(@$"{folder}\musictrack.json") || !File.Exists(@$"{folder}\video.webm") || !File.Exists(@$"{folder}\audio.ogg"))
+        if (!File.Exists(@$"{folder}\musictrack.json") || !File.Exists(@$"{folder}\video") || !File.Exists(@$"{folder}\audio"))
         {
             MessageBox.Show("Cannot find all needed files inside this folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
@@ -163,11 +155,11 @@ public partial class MainWindow : Window
 
         try
         {
-            _musicTrack = JsonSerializer.Deserialize<MusicTrack>(File.ReadAllText(@$"{folder}\musictrack.json"));
+            _musicTrack = JsonConvert.DeserializeObject<MusicTrack>(File.ReadAllText(@$"{folder}\musictrack.json"));
         }
         catch (Exception)
         {
-            MessageBox.Show("Failed to load musictrack.json. Check the file content and verify if it is indented.", "Deserialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show("Failed to load musictrack.json.", "Deserialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -175,23 +167,30 @@ public partial class MainWindow : Window
             ? float.Parse(_musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""))
             : 0f;
 
-        var media = new Media(_libVLC, @$"{dialog.FolderName}\video.webm");
+        var videoPath = Path.Combine(_projectFolderName!, "video");
+        var audioPath = Path.Combine(_projectFolderName!, "audio");
+
+        var media = new Media(_libVLC, videoPath, FromType.FromPath,
+        [
+            $":audio-desync={_videoStartTime * 1000f}"
+        ]);
+
+        await media.Parse(MediaParseOptions.ParseLocal);
+
+        media.AddSlave(MediaSlaveType.Audio, 0, new Uri(audioPath).AbsoluteUri);
+
         _mediaPlayer.Play(media);
-        VideoView.Visibility = Visibility.Visible;
-        var audio = new Media(_audioLibVLC, @$"{dialog.FolderName}\audio.ogg");
-        _audioMediaPlayer.Play(audio);
+
         await Task.Delay(100);
+
         _mediaPlayer.Pause();
-        _audioMediaPlayer.Pause();
-        _audioMediaPlayer.Time = 0;
 
         _minMapTime = 0 - _videoStartTime;
         _maxMapTime = (_mediaPlayer.Length / 1000f) - _videoStartTime;
 
         TimeLabel.Content = $"Map Time: {(_stopwatch.ElapsedMilliseconds / 1000f) - _videoStartTime:F2}ms / {_maxMapTime:F2}ms ";
 
-        _mediaPlayer.NextFrame();
-
+        VideoView.Visibility = Visibility.Visible;
         StartRecording.IsEnabled = true;
         StartServer.IsEnabled = true;
     }
