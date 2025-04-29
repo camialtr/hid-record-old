@@ -6,31 +6,53 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    </PropertyGroup>
-
+        <ApplicationIcon>Assets\avalonia-logo.ico</ApplicationIcon>
+        <Company>@meltedm_</Company>
+        <Product>HID Recorder</Product>
+        <AssemblyVersion>0.5.0</AssemblyVersion>
+        <FileVersion>1.0.0</FileVersion>        
+        <!-- AOT Configuration -->
+        <PublishAot>true</PublishAot>
+        <TrimMode>full</TrimMode>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <UseSystemResourceKeys>true</UseSystemResourceKeys>
+        <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+        <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+        <IlcDisableReflection>false</IlcDisableReflection>
+        <OptimizationPreference>Size</OptimizationPreference>
+        <PublishTrimmed>true</PublishTrimmed>
+        <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+        <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+        <EventSourceSupport>false</EventSourceSupport>
+        <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+        <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+        <UseNativeHttpHandler>true</UseNativeHttpHandler>
+        <DebuggerSupport>false</DebuggerSupport>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <SelfContained>true</SelfContained>
+    </PropertyGroup>    
+    <!-- Trimming options for Avalonia compatibility -->
+    <ItemGroup>
+        <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+        <TrimmerRootAssembly Include="Avalonia.Fonts.Inter" />
+        <TrimmerRootAssembly Include="Avalonia.Controls.DataGrid" />
+        <TrimmerRootAssembly Include="HidRecorder" />
+    </ItemGroup>    
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**"/>
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.2.7"/>
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.7"/>
         <PackageReference Include="Avalonia.Desktop" Version="11.2.7"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.7"/>
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.7"/>
-        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.2.7">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="FluentAvaloniaUI" Version="2.4.0-preview1" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
         <PackageReference Include="LibVLCSharp" Version="3.9.3" />
         <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="Windows\EditorWindow.axaml.cs">
-        <DependentUpon>MainWindow.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Services\" />
     </ItemGroup>
 </Project>

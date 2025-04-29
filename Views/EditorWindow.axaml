@@ -1,0 +1,93 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HidRecorder.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        x:Class="HidRecorder.Views.EditorWindow"
+        x:DataType="vm:EditorWindowViewModel"
+        Width="1200" Height="700" MinWidth="1200" MinHeight="700"
+        Title="HID Recorder">
+    <Design.DataContext>
+        <vm:EditorWindowViewModel />
+    </Design.DataContext>
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto">
+                <Menu Grid.Column="0">
+                    <MenuItem Header="Project">
+                        <MenuItem Header="New..." />
+                        <MenuItem Header="Open..." />
+                        <MenuItem Header="Save" />
+                        <MenuItem Header="Export As">
+                            <MenuItem Header="M.A.R.S. Recordings (*.rec)" />
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem Header="Settings" />
+                        <Separator />
+                        <MenuItem Header="Exit" Command="{CompiledBinding ExitCommand}" />
+                    </MenuItem>
+                </Menu>
+                <Label Grid.Column="1" VerticalAlignment="Center" Margin="0,5,10,0"
+                       Content="{CompiledBinding ServerContent}" />
+                <Button Grid.Column="2" Margin="0,7,10,3" VerticalAlignment="Center" Content="Start Server" />
+            </Grid>
+            <Grid Margin="10,5,10,10" ColumnDefinitions="*,*">
+                <Grid Column="0" Margin="0,0,5,0" RowDefinitions="0.55*,0.1*,0.35*">
+                    <Grid Row="0" x:Name="VideoGrid" Background="Black" HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch" />
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="Start Recording" Margin="5,0,10,0" />
+                        <Label Content="Time: 00:00ms / 00:00ms" VerticalContentAlignment="Center" />
+                    </StackPanel>
+                    <Grid Grid.Row="2" RowDefinitions="Auto,*">
+                        <Label Grid.Row="0" Content="Sessions" />
+                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto">
+                            <DataGrid ItemsSource="{CompiledBinding Sessions}" GridLinesVisibility="All"
+                                      MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                                      SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Platform" Binding="{CompiledBinding Platform}"
+                                                        IsReadOnly="True" />
+                                    <DataGridTextColumn Header="Name" Binding="{CompiledBinding Name}" />
+                                    <DataGridCheckBoxColumn Header="Export" Binding="{CompiledBinding Export}" />
+                                </DataGrid.Columns>
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="New" IsEnabled="False" />
+                                        <MenuItem Header="Delete" IsEnabled="False" />
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
+                            </DataGrid>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+                <Grid Column="1" RowDefinitions="Auto,*">
+                    <Label Grid.Row="0" Content="HID Data" />
+                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto">
+                        <DataGrid ItemsSource="{CompiledBinding HidData}" GridLinesVisibility="All"
+                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
+                                <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />
+                                <DataGridTextColumn Header="AccelY" Binding="{CompiledBinding AccelY}" />
+                                <DataGridTextColumn Header="AccelZ" Binding="{CompiledBinding AccelZ}" />
+                                <DataGridTextColumn Header="GyroX" Binding="{CompiledBinding GyroX}" />
+                                <DataGridTextColumn Header="GyroY" Binding="{CompiledBinding GyroY}" />
+                                <DataGridTextColumn Header="GyroZ" Binding="{CompiledBinding GyroZ}" />
+                            </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Delete" IsEnabled="False" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>
