@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
         x:Class="HidRecorder.Views.EditorWindow"
         x:DataType="vm:EditorWindowViewModel"
-        Width="1200" Height="700" MinWidth="1200" MinHeight="700"
+        Width="1200" Height="700" MinWidth="1200" MinHeight="700" WindowStartupLocation="CenterScreen"
         Title="HID Recorder">
     <Design.DataContext>
         <vm:EditorWindowViewModel />
@@ -16,7 +16,7 @@
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto">
                 <Menu Grid.Column="0">
                     <MenuItem Header="Project">
-                        <MenuItem Header="New..." />
+                        <MenuItem Header="New..." Command="{CompiledBinding NewCommand}" />
                         <MenuItem Header="Open..." />
                         <MenuItem Header="Save" />
                         <MenuItem Header="Export As">
@@ -46,7 +46,7 @@
                                       VerticalScrollBarVisibility="Auto">
                             <DataGrid ItemsSource="{CompiledBinding Sessions}" GridLinesVisibility="All"
                                       MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                      SelectionMode="Single">
+                                      AutoGenerateColumns="False" SelectionMode="Single">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Platform" Binding="{CompiledBinding Platform}"
                                                         IsReadOnly="True" />
@@ -68,8 +68,8 @@
                     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto">
                         <DataGrid ItemsSource="{CompiledBinding HidData}" GridLinesVisibility="All"
-                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                  IsReadOnly="True">
+                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
                                 <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />

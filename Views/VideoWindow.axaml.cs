@@ -9,6 +9,11 @@ public partial class VideoWindow : Window
     private readonly LibVLC? _libVlc;
     private readonly MediaPlayer? _mediaPlayer;
     
+    public VideoWindow()
+    {
+        InitializeComponent();
+    }
+    
     public VideoWindow(double width, double height, PixelPoint position)
     {
         InitializeComponent();

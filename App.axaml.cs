@@ -7,7 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 
 namespace HidRecorder;
 
-public partial class App : Application
+public class App : Application
 {
     public override void Initialize()
     {

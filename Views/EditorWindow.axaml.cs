@@ -8,7 +8,9 @@ public partial class EditorWindow : Window
     public EditorWindow()
     {
         InitializeComponent();
-
-        DataContext = new EditorWindowViewModel();
+        
+        var viewModel = new EditorWindowViewModel();
+        viewModel.SetParentWindow(this);
+        DataContext = viewModel;
     }
 }

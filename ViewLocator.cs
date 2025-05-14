@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using HidRecorder.ViewModels;
 using Avalonia.Controls.Templates;
 
+#pragma warning disable IL2057
+
 namespace HidRecorder;
 
 public class ViewLocator : IDataTemplate

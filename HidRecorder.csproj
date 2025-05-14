@@ -30,6 +30,7 @@
         <DebuggerSupport>false</DebuggerSupport>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <SelfContained>true</SelfContained>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>    
     <!-- Trimming options for Avalonia compatibility -->
     <ItemGroup>
@@ -38,6 +39,14 @@
         <TrimmerRootAssembly Include="Avalonia.Controls.DataGrid" />
         <TrimmerRootAssembly Include="HidRecorder" />
     </ItemGroup>    
+    <!-- JSON Source Generation configuration -->
+    <ItemGroup>
+        <CompilerVisibleProperty Include="JsonSerializerIsReflectionEnabledByDefault" />
+    </ItemGroup>
+    <PropertyGroup>
+        <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+        <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    </PropertyGroup>
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
@@ -54,5 +63,6 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
         <PackageReference Include="LibVLCSharp" Version="3.9.3" />
         <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+        <PackageReference Include="System.Text.Json" Version="9.0.5" />
     </ItemGroup>
 </Project>

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HidRecorder.Models;
+﻿namespace HidRecorder.Models;
 
 public class Session(string platform, string file, int linkId = 0, bool export = true)
 {
