@@ -186,7 +186,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
         return result.Count > 0 ? result[0].Path.LocalPath : string.Empty;
     }
     
-    private string SanitizeFileName(string fileName)
+    private static string SanitizeFileName(string fileName)
     {
         var invalidChars = Path.GetInvalidFileNameChars();
         return new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray()).Trim();
