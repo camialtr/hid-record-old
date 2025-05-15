@@ -129,7 +129,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
             var json = JsonConvert.SerializeObject(project, Formatting.Indented);
             File.WriteAllText(projectJsonPath, json);
             
-            var editorWindow = new EditorWindow();
+            var editorWindow = new EditorWindow(projectJsonPath);
             editorWindow.Show();
             
             _parent?.Close(project);
