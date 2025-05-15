@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Avalonia.Controls;
@@ -28,7 +29,17 @@ public partial class EditorWindowViewModel : ViewModelBase
     [ObservableProperty]
     private HidProject? _currentProject;
     
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProjectPath))]
+    private Session? _selectedSession;
+    
     private Window? _parentWindow;
+    
+    private string? _projectFilePath;
+    
+    public string ProjectPath => !string.IsNullOrEmpty(_projectFilePath) 
+        ? Path.GetDirectoryName(_projectFilePath)!
+        : string.Empty;
     
     public void SetParentWindow(Window window)
     {
@@ -78,6 +89,8 @@ public partial class EditorWindowViewModel : ViewModelBase
         if (string.IsNullOrEmpty(projectJsonPath))
             return;
             
+        _projectFilePath = projectJsonPath;
+            
         try
         {
             var projectJson = await File.ReadAllTextAsync(projectJsonPath);
@@ -87,6 +100,13 @@ public partial class EditorWindowViewModel : ViewModelBase
             {
                 CurrentProject = project;
                 IsProjectOpen = true;
+                
+                // Limpar e popular a coleção de sessões com as sessões do projeto
+                Sessions.Clear();
+                foreach (var session in project.Sessions)
+                {
+                    Sessions.Add(session);
+                }
                 
                 if (_parentWindow is { } window)
                 {
@@ -112,4 +132,48 @@ public partial class EditorWindowViewModel : ViewModelBase
     
     [RelayCommand]
     private static void Exit() => Environment.Exit(0);
+    
+    partial void OnSelectedSessionChanged(Session? oldValue, Session? newValue)
+    {
+        if (newValue == null || string.IsNullOrEmpty(ProjectPath))
+        {
+            return;
+        }
+        
+        LoadHidDataForSession(newValue);
+    }
+    
+    private void LoadHidDataForSession(Session session)
+    {
+        try
+        {
+            // Caminho para o arquivo de dados HID associado à sessão
+            var accdataPath = Path.Combine(ProjectPath, "accdata");
+            var hidDataFilePath = Path.Combine(accdataPath, session.Name);
+            
+            if (!File.Exists(hidDataFilePath))
+            {
+                Console.WriteLine($"Arquivo HID não encontrado: {hidDataFilePath}");
+                return;
+            }
+            
+            // Ler e deserializar os dados HID
+            var hidDataJson = File.ReadAllText(hidDataFilePath);
+            var hidDataList = JsonConvert.DeserializeObject<List<HidData>>(hidDataJson);
+            
+            // Atualizar a coleção observável
+            HidData.Clear();
+            if (hidDataList != null)
+            {
+                foreach (var data in hidDataList)
+                {
+                    HidData.Add(data);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar dados HID: {ex.Message}");
+        }
+    }
 }
