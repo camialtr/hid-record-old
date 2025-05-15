@@ -3,60 +3,118 @@
         xmlns:vm="using:HidRecorder.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
+        mc:Ignorable="d"
         x:Class="HidRecorder.Views.NewProjectWindow"
         x:DataType="vm:NewProjectWindowViewModel"
-        Title="New Project">
+        Title="New Project"
+        d:DesignWidth="600"
+        d:DesignHeight="350"
+        Width="600"
+        Height="350"
+        WindowStartupLocation="CenterOwner">
+
     <Design.DataContext>
         <vm:NewProjectWindowViewModel />
     </Design.DataContext>
-    
+
     <Window.Styles>
         <Style Selector="TextBlock.error">
-            <Setter Property="Foreground" Value="Red"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,5,0,10"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Foreground" Value="Red" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,5,0,10" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+
+        <Style Selector="Button.browse">
+            <Setter Property="Margin" Value="5,0,0,5" />
         </Style>
     </Window.Styles>
-    
-    <StackPanel Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="400">
-        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,10">
-            <TextBox Grid.Row="0" Grid.Column="0" Margin="0,0,0,5" Watermark="Project Name"
+
+    <StackPanel Margin="20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MinWidth="400">
+
+        <!-- Form Fields -->
+        <Grid ColumnDefinitions="*,Auto"
+              RowDefinitions="Auto,Auto,Auto,Auto"
+              Margin="0,0,0,10">
+
+            <!-- Project Name Field -->
+            <TextBox Grid.Row="0"
+                     Grid.Column="0"
+                     Watermark="Project Name"
                      Text="{CompiledBinding ProjectName}" />
-            <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,0,5" Watermark="Video File"
-                     Text="{CompiledBinding Video}" 
+
+            <!-- Video File Field -->
+            <TextBox Grid.Row="1"
+                     Grid.Column="0"
+                     Watermark="Video File"
+                     Text="{CompiledBinding Video}"
                      ToolTip.Tip="Path must be valid" />
-            <TextBox Grid.Row="2" Grid.Column="0" Margin="0,0,0,5" Watermark="Audio File"
+
+            <!-- Audio File Field -->
+            <TextBox Grid.Row="2"
+                     Grid.Column="0"
+                     Watermark="Audio File"
                      Text="{CompiledBinding Audio}"
                      ToolTip.Tip="Path must be valid" />
-            <TextBox Grid.Row="3" Grid.Column="0" Margin="0,0,0,5" Watermark="Ubisoft MusicTrack"
+
+            <!-- Music Track Field -->
+            <TextBox Grid.Row="3"
+                     Grid.Column="0"
+                     Watermark="Ubisoft MusicTrack"
                      Text="{CompiledBinding MusicTrack}"
                      ToolTip.Tip="Path must be valid" />
-            <Button Grid.Row="1" Grid.Column="1" Margin="5,0,0,5" Content="Browse..."
+
+            <!-- Browse Buttons -->
+            <Button Grid.Row="1"
+                    Grid.Column="1"
+                    Classes="browse"
+                    Content="Browse..."
                     Command="{CompiledBinding BrowseVideoCommand}" />
-            <Button Grid.Row="2" Grid.Column="1" Margin="5,0,0,5" Content="Browse..."
+
+            <Button Grid.Row="2"
+                    Grid.Column="1"
+                    Classes="browse"
+                    Content="Browse..."
                     Command="{CompiledBinding BrowseAudioCommand}" />
-            <Button Grid.Row="3" Grid.Column="1" Margin="5,0,0,5" Content="Browse..."
+
+            <Button Grid.Row="3"
+                    Grid.Column="1"
+                    Classes="browse"
+                    Content="Browse..."
                     Command="{CompiledBinding BrowseMusicTrackCommand}" />
         </Grid>
-        
+
         <!-- Error Message -->
-        <TextBlock Classes="error" 
-                   Text="{CompiledBinding ErrorMessage}" 
+        <TextBlock Classes="error"
+                   Text="{CompiledBinding ErrorMessage}"
                    IsVisible="{CompiledBinding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,10,0,0">
-            <Button Content="Cancel" Command="{CompiledBinding CancelCommand}" />
-            <Button Content="Create Project" 
+
+        <!-- Action Buttons -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Spacing="10"
+                    Margin="0,10,0,0">
+
+            <Button Content="Cancel"
+                    Command="{CompiledBinding CancelCommand}" />
+
+            <Button Content="Create Project"
                     Command="{CompiledBinding CreateProjectCommand}"
                     IsEnabled="{CompiledBinding CanCreateProject}" />
         </StackPanel>
-        
-        <TextBlock Text="All fields are required and must be valid file paths" 
-                   HorizontalAlignment="Center" 
-                   Margin="0,10,0,0" 
+
+        <!-- Instructions -->
+        <TextBlock Text="All fields are required and must be valid file paths"
+                   HorizontalAlignment="Center"
+                   Margin="0,10,0,0"
                    Opacity="0.7"
                    FontStyle="Italic"
                    FontSize="12" />

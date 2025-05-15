@@ -3,16 +3,42 @@
         xmlns:vm="using:HidRecorder.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+        mc:Ignorable="d"
         x:Class="HidRecorder.Views.EditorWindow"
         x:DataType="vm:EditorWindowViewModel"
-        Width="1200" Height="700" MinWidth="1200" MinHeight="700" WindowStartupLocation="CenterScreen"
-        Title="HID Recorder">
+        Title="HID Recorder"
+        Width="1200" 
+        Height="700" 
+        MinWidth="1200" 
+        MinHeight="700" 
+        WindowStartupLocation="CenterScreen"
+        d:DesignWidth="1200" 
+        d:DesignHeight="700">
+        
     <Design.DataContext>
         <vm:EditorWindowViewModel />
     </Design.DataContext>
+    
+    <Window.Styles>
+        <Style Selector="Label.sectionHeader">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+        
+        <Style Selector="DataGrid">
+            <Setter Property="GridLinesVisibility" Value="All"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+        </Style>
+        
+        <Style Selector="ScrollViewer">
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        </Style>
+    </Window.Styles>
+    
     <Grid>
         <DockPanel LastChildFill="True">
+            <!-- Top Menu and Controls -->
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto">
                 <Menu Grid.Column="0">
                     <MenuItem Header="Project">
@@ -28,31 +54,59 @@
                         <MenuItem Header="Exit" Command="{CompiledBinding ExitCommand}" />
                     </MenuItem>
                 </Menu>
-                <Label Grid.Column="1" VerticalAlignment="Center" Margin="0,5,10,0"
+                
+                <Label Grid.Column="1" 
+                       VerticalAlignment="Center" 
+                       Margin="0,5,10,0"
                        Content="{CompiledBinding ServerContent}" />
-                <Button Grid.Column="2" Margin="0,7,10,3" VerticalAlignment="Center" Content="Start Server" />
+                       
+                <Button Grid.Column="2" 
+                        Margin="0,7,10,3" 
+                        VerticalAlignment="Center" 
+                        Content="Start Server" />
             </Grid>
+            
+            <!-- Main Content -->
             <Grid Margin="10,5,10,10" ColumnDefinitions="*,*">
-                <Grid Column="0" Margin="0,0,5,0" RowDefinitions="0.55*,0.1*,0.35*">
-                    <Grid Row="0" x:Name="VideoGrid" Background="Black" HorizontalAlignment="Stretch"
+                <!-- Left Panel - Video and Sessions -->
+                <Grid Grid.Column="0" Margin="0,0,5,0" RowDefinitions="0.55*,0.1*,0.35*">
+                    <!-- Video Player -->
+                    <Grid Grid.Row="0" 
+                          x:Name="VideoGrid" 
+                          Background="Black" 
+                          HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch" />
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="Start Recording" Margin="5,0,10,0" />
-                        <Label Content="Time: 00:00ms / 00:00ms" VerticalContentAlignment="Center" />
+                    
+                    <!-- Video Controls -->
+                    <StackPanel Grid.Row="1" 
+                                Orientation="Horizontal" 
+                                HorizontalAlignment="Center">
+                        <Button Content="Start Recording" 
+                                Margin="5,0,10,0" />
+                        <Label Content="Time: 00:00ms / 00:00ms" 
+                               VerticalContentAlignment="Center" />
                     </StackPanel>
+                    
+                    <!-- Sessions Section -->
                     <Grid Grid.Row="2" RowDefinitions="Auto,*">
-                        <Label Grid.Row="0" Content="Sessions" />
-                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Auto">
-                            <DataGrid ItemsSource="{CompiledBinding Sessions}" GridLinesVisibility="All"
+                        <Label Grid.Row="0" 
+                               Classes="sectionHeader"
+                               Content="Sessions" />
+                               
+                        <ScrollViewer Grid.Row="1">
+                            <DataGrid ItemsSource="{CompiledBinding Sessions}"
                                       MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                      AutoGenerateColumns="False" SelectionMode="Single">
+                                      SelectionMode="Single">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Platform" Binding="{CompiledBinding Platform}"
+                                    <DataGridTextColumn Header="Platform" 
+                                                        Binding="{CompiledBinding Platform}"
                                                         IsReadOnly="True" />
-                                    <DataGridTextColumn Header="Name" Binding="{CompiledBinding Name}" />
-                                    <DataGridCheckBoxColumn Header="Export" Binding="{CompiledBinding Export}" />
+                                    <DataGridTextColumn Header="Name" 
+                                                        Binding="{CompiledBinding Name}" />
+                                    <DataGridCheckBoxColumn Header="Export" 
+                                                           Binding="{CompiledBinding Export}" />
                                 </DataGrid.Columns>
+                                
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="New" IsEnabled="False" />
@@ -63,13 +117,17 @@
                         </ScrollViewer>
                     </Grid>
                 </Grid>
-                <Grid Column="1" RowDefinitions="Auto,*">
-                    <Label Grid.Row="0" Content="HID Data" />
-                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-                        <DataGrid ItemsSource="{CompiledBinding HidData}" GridLinesVisibility="All"
-                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}" 
-                                  AutoGenerateColumns="False" IsReadOnly="True">
+                
+                <!-- Right Panel - HID Data -->
+                <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                    <Label Grid.Row="0" 
+                           Classes="sectionHeader"
+                           Content="HID Data" />
+                           
+                    <ScrollViewer Grid.Row="1">
+                        <DataGrid ItemsSource="{CompiledBinding HidData}"
+                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                                  IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
                                 <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />
@@ -79,6 +137,7 @@
                                 <DataGridTextColumn Header="GyroY" Binding="{CompiledBinding GyroY}" />
                                 <DataGridTextColumn Header="GyroZ" Binding="{CompiledBinding GyroZ}" />
                             </DataGrid.Columns>
+                            
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Delete" IsEnabled="False" />
