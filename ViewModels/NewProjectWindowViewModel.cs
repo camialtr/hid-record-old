@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using Newtonsoft.Json;
 using HidRecorder.Views;
 using Avalonia.Controls;
 using HidRecorder.Models;
@@ -77,6 +77,8 @@ public partial class NewProjectWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCreateProject))]
     private void CreateProject()
     {
+        string? projectPath = null;
+        
         try
         {
             var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -86,7 +88,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
                 Directory.CreateDirectory(hidRProjectsPath);
             
             var projectDirectoryName = SanitizeFileName(ProjectName);
-            var projectPath = Path.Combine(hidRProjectsPath, projectDirectoryName);
+            projectPath = Path.Combine(hidRProjectsPath, projectDirectoryName);
             
             if (Directory.Exists(projectPath))
             {
@@ -108,7 +110,11 @@ public partial class NewProjectWindowViewModel : ViewModelBase
             
             File.Copy(Video, videoDestPath);
             File.Copy(Audio, audioDestPath);
-            File.Copy(MusicTrack, musicTrackDestPath);
+            
+            var musicTrackJson = File.ReadAllText(MusicTrack);
+            var musicTrack = JsonConvert.DeserializeObject<MusicTrack>(musicTrackJson);
+            var indentedMusicTrackJson = JsonConvert.SerializeObject(musicTrack, Formatting.Indented);
+            File.WriteAllText(musicTrackDestPath.Replace(".tpl.ckd", ".json"), indentedMusicTrackJson);
             
             var project = new HidProject
             {
@@ -120,7 +126,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
             
             var projectJsonPath = Path.Combine(projectPath, "project.json");
             
-            var json = JsonSerializer.Serialize(project, AppJsonSerializerContext.Default.HidProject);
+            var json = JsonConvert.SerializeObject(project, Formatting.Indented);
             File.WriteAllText(projectJsonPath, json);
             
             var editorWindow = new EditorWindow();
@@ -131,6 +137,18 @@ public partial class NewProjectWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorMessage = $"Error creating project: {ex.Message}";
+            
+            if (projectPath != null && Directory.Exists(projectPath))
+            {
+                try
+                {
+                    Directory.Delete(projectPath, true);
+                }
+                catch (Exception deleteEx)
+                {
+                    ErrorMessage += $" (Failed to clean up temporary files: {deleteEx.Message})";
+                }
+            }
         }
     }
 

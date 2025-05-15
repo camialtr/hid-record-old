@@ -12,7 +12,7 @@
         MinWidth="1200" 
         MinHeight="700" 
         WindowStartupLocation="CenterScreen"
-        d:DesignWidth="1200" 
+        d:DesignWidth="1200"
         d:DesignHeight="700">
         
     <Design.DataContext>
