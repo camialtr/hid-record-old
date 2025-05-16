@@ -98,7 +98,8 @@
                             <DataGrid ItemsSource="{CompiledBinding Sessions}"
                                       SelectedItem="{CompiledBinding SelectedSession}"
                                       MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                      SelectionMode="Single">
+                                      SelectionMode="Single"
+                                      CellEditEnded="SessionsGrid_CellEditEnded">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Platform"
                                                         Binding="{CompiledBinding Platform}"
