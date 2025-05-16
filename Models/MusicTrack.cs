@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+// ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable InconsistentNaming
 
 namespace HidRecorder.Models;

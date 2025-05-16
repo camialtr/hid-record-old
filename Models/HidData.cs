@@ -1,6 +1,6 @@
 ﻿namespace HidRecorder.Models;
 
-public class HidData(float time, float accelX, float accelY, float accelZ, float gyroX, float gyroY, float gyroZ)
+public class HidData(float time, float accelX, float accelY, float accelZ, float angleX, float angleY, float angleZ)
 {
     public float Time { get; set; } = time;
     
@@ -10,9 +10,9 @@ public class HidData(float time, float accelX, float accelY, float accelZ, float
     
     public float AccelZ { get; set; } = accelZ;
     
-    public float GyroX { get; set; } = gyroX;
+    public float AngleX { get; set; } = angleX;
     
-    public float GyroY{ get; set; } = gyroY;
+    public float AngleY{ get; set; } = angleY;
     
-    public float GyroZ{ get; set; } = gyroZ;
+    public float AngleZ{ get; set; } = angleZ;
 }

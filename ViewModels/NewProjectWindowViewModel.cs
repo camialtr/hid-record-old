@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using HidRecorder.Views;
 using Avalonia.Controls;
 using HidRecorder.Models;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -117,20 +117,29 @@ public partial class NewProjectWindowViewModel : ViewModelBase
             var indentedMusicTrackJson = JsonConvert.SerializeObject(musicTrack, Formatting.Indented);
             File.WriteAllText(musicTrackDestPath.Replace(".tpl.ckd", ".json"), indentedMusicTrackJson);
             
-            // Criar arquivo de dados HID de exemplo
-            var exampleHidData = CreateExampleHidData();
-            var exampleHidDataFileName = "example_data.json";
-            var exampleHidDataPath = Path.Combine(accdataPath, exampleHidDataFileName);
+            var example01HidData = CreateExampleHidData();
+            const string example01HidDataBaseName = "Template_Example_01";
+            const string example01HidDataFileName = example01HidDataBaseName + ".json";
+            var example01HidDataPath = Path.Combine(accdataPath, example01HidDataFileName);
+            var example01DataJson = JsonConvert.SerializeObject(example01HidData, Formatting.Indented);
+            File.WriteAllText(example01HidDataPath, example01DataJson);
             
-            // Salvar os dados HID como JSON no arquivo exemplo
-            var hidDataJson = JsonConvert.SerializeObject(exampleHidData, Formatting.Indented);
-            File.WriteAllText(exampleHidDataPath, hidDataJson);
+            var example02HidData = CreateExampleHidData();
+            const string example02HidDataBaseName = "Template_Example_02";
+            const string example02HidDataFileName = example02HidDataBaseName + ".json";
+            var example02HidDataPath = Path.Combine(accdataPath, example02HidDataFileName);
+            var example02DataJson = JsonConvert.SerializeObject(example02HidData, Formatting.Indented);
+            File.WriteAllText(example02HidDataPath, example02DataJson);
             
-            // Criar uma sessão de exemplo e adicionar ao projeto
-            var exampleSession = new Session(
-                platform: "Example", 
-                file: exampleHidDataFileName, 
-                linkId: 1, 
+            var example01Session = new Session(
+                platform: "NX", 
+                file: example01HidDataBaseName,
+                export: true
+            );
+            
+            var example02Session = new Session(
+                platform: "NX", 
+                file: example02HidDataBaseName,
                 export: true
             );
             
@@ -140,7 +149,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
                 Video = videoFileName,
                 Audio = audioFileName,
                 MusicTrack = musicTrackFileName,
-                Sessions = [exampleSession]
+                Sessions = [example01Session, example02Session]
             };
             
             var projectJsonPath = Path.Combine(projectPath, "project.json");
@@ -213,25 +222,22 @@ public partial class NewProjectWindowViewModel : ViewModelBase
     
     private static List<HidData> CreateExampleHidData()
     {
-        // Criar um conjunto de dados HID de exemplo com movimentos simulados
         var exampleData = new List<HidData>();
+        var random = new Random();
         
-        // Gerar 50 registros de exemplo
-        for (int i = 0; i < 50; i++)
+        for (var i = 0; i < 50; i++)
         {
-            // Tempo aumenta 100ms a cada amostra
-            float time = i * 0.1f;
+            var time = i * 0.1f;
             
-            // Simular um movimento de rotação e aceleração simples
-            float accelX = (float)Math.Sin(time) * 0.5f;
-            float accelY = (float)Math.Cos(time) * 0.3f;
-            float accelZ = 9.8f + (float)Math.Sin(time * 0.5f) * 0.2f; // Gravidade + pequena variação
+            var accelY = (float)(random.NextDouble() * 5 - 2);
+            var accelX = (float)(random.NextDouble() * 5 - 2);
+            var accelZ = (float)(random.NextDouble() * 5 - 2);
             
-            float gyroX = (float)Math.Sin(time * 0.7f) * 10f;
-            float gyroY = (float)Math.Cos(time * 0.7f) * 8f;
-            float gyroZ = (float)Math.Sin(time * 0.3f) * 5f;
+            var angleX = (float)(random.NextDouble() * 5 - 2);
+            var angleY = (float)(random.NextDouble() * 5 - 2);
+            var angleZ = (float)(random.NextDouble() * 5 - 2);
             
-            exampleData.Add(new HidData(time, accelX, accelY, accelZ, gyroX, gyroY, gyroZ));
+            exampleData.Add(new HidData(time, accelX, accelY, accelZ, angleX, angleY, angleZ));
         }
         
         return exampleData;

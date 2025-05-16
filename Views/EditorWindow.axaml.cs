@@ -22,20 +22,19 @@ public partial class EditorWindow : Window
         var viewModel = new EditorWindowViewModel();
         viewModel.SetParentWindow(this);
         DataContext = viewModel;
+
+        if (string.IsNullOrEmpty(projectPath)) return;
         
-        if (!string.IsNullOrEmpty(projectPath))
+        var projectJsonPath = projectPath;
+            
+        if (Directory.Exists(projectPath))
         {
-            string projectJsonPath = projectPath;
+            projectJsonPath = Path.Combine(projectPath, "project.json");
+        }
             
-            if (Directory.Exists(projectPath))
-            {
-                projectJsonPath = Path.Combine(projectPath, "project.json");
-            }
-            
-            if (File.Exists(projectJsonPath))
-            {
-                _ = viewModel.OpenProjectFile(projectJsonPath);
-            }
+        if (File.Exists(projectJsonPath))
+        {
+            _ = viewModel.OpenProjectFile(projectJsonPath);
         }
     }
 }

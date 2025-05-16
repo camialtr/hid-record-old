@@ -44,7 +44,6 @@
                     <MenuItem Header="Project">
                         <MenuItem Header="New..." Command="{CompiledBinding NewCommand}" />
                         <MenuItem Header="Open..." Command="{CompiledBinding OpenCommand}" />
-                        <MenuItem Header="Save" />
                         <MenuItem Header="Export As">
                             <MenuItem Header="M.A.R.S. Recordings (*.rec)" />
                         </MenuItem>
@@ -136,9 +135,9 @@
                                 <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />
                                 <DataGridTextColumn Header="AccelY" Binding="{CompiledBinding AccelY}" />
                                 <DataGridTextColumn Header="AccelZ" Binding="{CompiledBinding AccelZ}" />
-                                <DataGridTextColumn Header="GyroX" Binding="{CompiledBinding GyroX}" />
-                                <DataGridTextColumn Header="GyroY" Binding="{CompiledBinding GyroY}" />
-                                <DataGridTextColumn Header="GyroZ" Binding="{CompiledBinding GyroZ}" />
+                                <DataGridTextColumn Header="AngleX" Binding="{CompiledBinding AngleX}" />
+                                <DataGridTextColumn Header="AngleY" Binding="{CompiledBinding AngleY}" />
+                                <DataGridTextColumn Header="AngleZ" Binding="{CompiledBinding AngleZ}" />
                             </DataGrid.Columns>
 
                             <DataGrid.ContextMenu>
