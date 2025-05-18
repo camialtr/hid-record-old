@@ -57,6 +57,10 @@ public partial class EditorWindowViewModel : ViewModelBase
 
     public bool HasSelectedSession => SelectedSession != null;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StartRecordingCommand))]
+    private bool _isServerReceivingData;
+
     private Window? _parentWindow;
 
     private string? _projectFilePath;
@@ -350,7 +354,7 @@ public partial class EditorWindowViewModel : ViewModelBase
         }
     }
 
-    private bool CanStartRecording() => IsProjectOpen && SelectedSession != null;
+    private bool CanStartRecording() => IsProjectOpen && SelectedSession != null && _server?.Connected == true && IsServerReceivingData;
 
     [RelayCommand(CanExecute = nameof(CanStartRecording))]
     private void StartRecording()
@@ -657,14 +661,21 @@ public partial class EditorWindowViewModel : ViewModelBase
             _server = null;
             ServerContent = "Start Server";
             ServerDataContent = "Waiting for server...";
+            IsServerReceivingData = false;
             return;
         }
 
-        if (_server is null || !_server.Connected) return;
+        if (_server is null || !_server.Connected)
+        {
+            IsServerReceivingData = false;
+            return;
+        }
 
         var masterString = string.Empty;
 
         var lNd = _server.NetworkData;
+        
+        IsServerReceivingData = _samplesPerSecond > 0;
 
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
         var accelY = $"{lNd.AccelY:F9}".PadRight(9, '0')[..9];
