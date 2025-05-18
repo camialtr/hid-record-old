@@ -24,6 +24,20 @@ public partial class EditorWindowViewModel : ViewModelBase
     public ObservableCollection<Session> Sessions { get; } = [];
 
     public ObservableCollection<HidData> HidData { get; } = [];
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedHidData))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedHidDataCommand))]
+    private List<HidData> _selectedHidData = [];
+    
+    public bool HasSelectedHidData => SelectedHidData.Count > 0;
+    
+    public void OnSelectedHidDataChanged()
+    {
+        OnPropertyChanged(nameof(SelectedHidData));
+        OnPropertyChanged(nameof(HasSelectedHidData));
+        DeleteSelectedHidDataCommand.NotifyCanExecuteChanged();
+    }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartRecordingCommand))]
@@ -473,6 +487,54 @@ public partial class EditorWindowViewModel : ViewModelBase
         {
             Console.WriteLine($"Error deleting session: {ex.Message}");
             await ShowErrorMessage($"Error deleting session: {ex.Message}", "Deletion Error");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(HasSelectedHidData))]
+    private async Task DeleteSelectedHidData()
+    {
+        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath) || 
+            SelectedSession == null || SelectedHidData.Count == 0)
+            return;
+            
+        try
+        {
+            var itemCount = SelectedHidData.Count;
+            var message = itemCount == 1 
+                ? "Are you sure you want to delete 1 HID data entry?" 
+                : $"Are you sure you want to delete {itemCount} HID data entries?";
+                
+            var box = MessageBoxManager
+                .GetMessageBoxStandard(
+                    "Confirm Deletion",
+                    message,
+                    MsBox.Avalonia.Enums.ButtonEnum.YesNo);
+                    
+            var result = await box.ShowAsync();
+            
+            if (result != MsBox.Avalonia.Enums.ButtonResult.Yes)
+                return;
+            
+            foreach (var item in SelectedHidData.ToList())
+            {
+                HidData.Remove(item);
+            }
+            
+            var accdataPath = Path.Combine(ProjectPath, "accdata");
+            if (Directory.Exists(accdataPath))
+            {
+                var hidDataFilePath = Path.Combine(accdataPath, $"{SelectedSession.Name}.json");
+                var hidDataJson = JsonConvert.SerializeObject(HidData, Formatting.Indented);
+                await File.WriteAllTextAsync(hidDataFilePath, hidDataJson);
+                
+                Console.WriteLine($"Updated HID data file: {hidDataFilePath}");
+                Console.WriteLine($"Deleted {itemCount} HID data entries");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting HID data entries: {ex.Message}");
+            await ShowErrorMessage($"Error deleting HID data entries: {ex.Message}", "Deletion Error");
         }
     }
 }

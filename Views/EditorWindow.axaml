@@ -112,8 +112,8 @@
 
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}" 
-                                                  Command="{Binding NewSessionCommand}"/>
+                                        <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}"
+                                                  Command="{Binding NewSessionCommand}" />
                                         <MenuItem Header="Delete" IsEnabled="{CompiledBinding HasSelectedSession}"
                                                   Command="{Binding DeleteSessionCommand}" />
                                     </ContextMenu>
@@ -128,10 +128,11 @@
                     <Label Grid.Row="0"
                            Classes="sectionHeader"
                            Content="HID Data" />
-                
+
                     <ScrollViewer Grid.Row="1">
                         <DataGrid ItemsSource="{CompiledBinding HidData}"
                                   MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                                  SelectionChanged="HidDataGrid_SelectionChanged"
                                   IsReadOnly="True">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
@@ -145,7 +146,9 @@
 
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Delete" IsEnabled="False" />
+                                    <MenuItem Header="Delete"
+                                              IsEnabled="{CompiledBinding HasSelectedHidData}"
+                                              Command="{Binding DeleteSelectedHidDataCommand}" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                         </DataGrid>

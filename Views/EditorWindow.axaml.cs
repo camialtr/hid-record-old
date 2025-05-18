@@ -59,4 +59,18 @@ public partial class EditorWindow : Window
             _ = viewModel.UpdateSessionName(session);
         }
     }
+    private void HidDataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is not EditorWindowViewModel viewModel || sender is not DataGrid dataGrid) return;
+        viewModel.SelectedHidData.Clear();
+        
+        foreach (HidData item in dataGrid.SelectedItems)
+        {
+            viewModel.SelectedHidData.Add(item);
+        }
+        
+        viewModel.OnSelectedHidDataChanged();
+    }
 }
+            
+            
