@@ -154,7 +154,6 @@ public partial class EditorWindowViewModel : ViewModelBase
 
                     if (File.Exists(videoPath))
                     {
-                        Resized(new VideoPositionInfo(1, 1, new PixelPoint(-100,0)));
                         _videoWindow?.OpenVideo(videoPath);
                     }
                 }
