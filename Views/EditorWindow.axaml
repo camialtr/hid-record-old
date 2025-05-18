@@ -73,7 +73,6 @@
                     <!-- Video Player -->
                     <Grid Grid.Row="0"
                           x:Name="VideoGrid"
-                          Background="Black"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch" />
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia;
 using System.IO;
 using System.Linq;
 using MsBox.Avalonia;
@@ -12,7 +13,6 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Avalonia;
 
 // ReSharper disable UnusedParameterInPartialMethod
 
@@ -32,7 +32,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     private List<HidData> _selectedHidData = [];
 
     public bool HasSelectedHidData => SelectedHidData.Count > 0;
-
+    
     public void OnSelectedHidDataChanged()
     {
         OnPropertyChanged(nameof(SelectedHidData));
@@ -154,11 +154,8 @@ public partial class EditorWindowViewModel : ViewModelBase
 
                     if (File.Exists(videoPath))
                     {
-                        _videoWindow?.Close();
-                        _videoWindow = new VideoWindow(100, 100,
-                            new PixelPoint(100, 0));
-                        _videoWindow.Show();
-                        _videoWindow.OpenVideo(videoPath);
+                        Resized(new VideoPositionInfo(1, 1, new PixelPoint(-100,0)));
+                        _videoWindow?.OpenVideo(videoPath);
                     }
                 }
             }
@@ -166,6 +163,28 @@ public partial class EditorWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             MessageBoxManager.GetMessageBoxStandard("Error", $"Error when opening the project: {ex.Message}");
+        }
+    }
+    
+    [RelayCommand]
+    private void Resized(VideoPositionInfo info)
+    {
+        if (_videoWindow == null)
+        {
+            _videoWindow = new VideoWindow(info.Width, info.Height, info.Position);
+            
+            if (_parentWindow is { } parentWindow)
+            {
+                _videoWindow.Tag = parentWindow;
+            }
+            
+            _videoWindow.Show();
+        }
+        else
+        {
+            _videoWindow.Width = info.Width;
+            _videoWindow.Height = info.Height;
+            _videoWindow.Position = info.Position;
         }
     }
 
@@ -555,5 +574,24 @@ public partial class EditorWindowViewModel : ViewModelBase
             Console.WriteLine($"Error deleting HID data entries: {ex.Message}");
             await ShowErrorMessage($"Error deleting HID data entries: {ex.Message}", "Deletion Error");
         }
+    }
+    
+    public void MinimizeVideoWindow()
+    {
+        if (_videoWindow == null) return;
+        _videoWindow.Topmost = false;
+    }
+    
+    public void RestoreVideoWindow()
+    {
+        if (_videoWindow == null) return;
+        _videoWindow.Topmost = true;
+    }
+    
+    public void CloseVideoWindow()
+    {
+        if (_videoWindow == null) return;
+        _videoWindow.Close();
+        _videoWindow = null;
     }
 }
