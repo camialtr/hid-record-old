@@ -75,7 +75,6 @@ public partial class EditorWindowViewModel : ViewModelBase
     
     private DispatcherTimer? _updateTimer;
     private DispatcherTimer? _sampleCountTimer;
-    //private readonly Stopwatch _stopwatch = new();
     private int _lastSamplesCount;
     private int _fullSamplesCount;
     private int _samplesPerSecond;
@@ -171,9 +170,21 @@ public partial class EditorWindowViewModel : ViewModelBase
                         ? project.Video
                         : Path.Combine(ProjectPath, project.Video);
 
-                    if (File.Exists(videoPath))
+                    var audioPath = !string.IsNullOrEmpty(project.Audio)
+                        ? Path.IsPathRooted(project.Audio)
+                            ? project.Audio
+                            : Path.Combine(ProjectPath, project.Audio)
+                        : null;
+
+                    var musicTrackPath = !string.IsNullOrEmpty(project.MusicTrack)
+                        ? Path.IsPathRooted(project.MusicTrack)
+                            ? project.MusicTrack
+                            : Path.Combine(ProjectPath, project.MusicTrack)
+                        : null;
+
+                    if (File.Exists(videoPath) && File.Exists(audioPath) && File.Exists(musicTrackPath))
                     {
-                        _videoWindow?.OpenVideo(videoPath);
+                        _videoWindow?.OpenVideo(videoPath, audioPath, musicTrackPath);
                     }
                 }
             }
