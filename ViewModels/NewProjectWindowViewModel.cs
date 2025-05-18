@@ -220,7 +220,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
         return new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray()).Trim();
     }
     
-    private static List<HidData> CreateExampleHidData()
+    public static List<HidData> CreateExampleHidData()
     {
         var exampleData = new List<HidData>();
         var random = new Random();

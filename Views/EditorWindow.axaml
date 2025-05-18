@@ -112,8 +112,10 @@
 
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}" />
-                                        <MenuItem Header="Delete" IsEnabled="False" />
+                                        <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}" 
+                                                  Command="{Binding NewSessionCommand}"/>
+                                        <MenuItem Header="Delete" IsEnabled="{CompiledBinding HasSelectedSession}"
+                                                  Command="{Binding DeleteSessionCommand}" />
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                             </DataGrid>
