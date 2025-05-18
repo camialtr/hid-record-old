@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia;
 
 // ReSharper disable UnusedParameterInPartialMethod
 
@@ -24,14 +25,14 @@ public partial class EditorWindowViewModel : ViewModelBase
     public ObservableCollection<Session> Sessions { get; } = [];
 
     public ObservableCollection<HidData> HidData { get; } = [];
-    
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedHidData))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedHidDataCommand))]
     private List<HidData> _selectedHidData = [];
-    
+
     public bool HasSelectedHidData => SelectedHidData.Count > 0;
-    
+
     public void OnSelectedHidDataChanged()
     {
         OnPropertyChanged(nameof(SelectedHidData));
@@ -64,6 +65,8 @@ public partial class EditorWindowViewModel : ViewModelBase
     public string ProjectPath => !string.IsNullOrEmpty(_projectFilePath)
         ? Path.GetDirectoryName(_projectFilePath)!
         : string.Empty;
+
+    private VideoWindow? _videoWindow;
 
     public void SetParentWindow(Window window)
     {
@@ -142,11 +145,27 @@ public partial class EditorWindowViewModel : ViewModelBase
                 {
                     window.Title = $"HID Recorder - {project.Name}";
                 }
+
+                if (!string.IsNullOrEmpty(project.Video))
+                {
+                    var videoPath = Path.IsPathRooted(project.Video)
+                        ? project.Video
+                        : Path.Combine(ProjectPath, project.Video);
+
+                    if (File.Exists(videoPath))
+                    {
+                        _videoWindow?.Close();
+                        _videoWindow = new VideoWindow(100, 100,
+                            new PixelPoint(100, 0));
+                        _videoWindow.Show();
+                        _videoWindow.OpenVideo(videoPath);
+                    }
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error opening project: {ex.Message}");
+            MessageBoxManager.GetMessageBoxStandard("Error", $"Error when opening the project: {ex.Message}");
         }
     }
 
@@ -387,7 +406,7 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         try
         {
-            var baseName = "New_Session";
+            const string baseName = "New_Session";
             var sessionName = baseName;
             var counter = 1;
 
@@ -493,40 +512,40 @@ public partial class EditorWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(HasSelectedHidData))]
     private async Task DeleteSelectedHidData()
     {
-        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath) || 
+        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath) ||
             SelectedSession == null || SelectedHidData.Count == 0)
             return;
-            
+
         try
         {
             var itemCount = SelectedHidData.Count;
-            var message = itemCount == 1 
-                ? "Are you sure you want to delete 1 HID data entry?" 
+            var message = itemCount == 1
+                ? "Are you sure you want to delete 1 HID data entry?"
                 : $"Are you sure you want to delete {itemCount} HID data entries?";
-                
+
             var box = MessageBoxManager
                 .GetMessageBoxStandard(
                     "Confirm Deletion",
                     message,
                     MsBox.Avalonia.Enums.ButtonEnum.YesNo);
-                    
+
             var result = await box.ShowAsync();
-            
+
             if (result != MsBox.Avalonia.Enums.ButtonResult.Yes)
                 return;
-            
+
             foreach (var item in SelectedHidData.ToList())
             {
                 HidData.Remove(item);
             }
-            
+
             var accdataPath = Path.Combine(ProjectPath, "accdata");
             if (Directory.Exists(accdataPath))
             {
                 var hidDataFilePath = Path.Combine(accdataPath, $"{SelectedSession.Name}.json");
                 var hidDataJson = JsonConvert.SerializeObject(HidData, Formatting.Indented);
                 await File.WriteAllTextAsync(hidDataFilePath, hidDataJson);
-                
+
                 Console.WriteLine($"Updated HID data file: {hidDataFilePath}");
                 Console.WriteLine($"Deleted {itemCount} HID data entries");
             }

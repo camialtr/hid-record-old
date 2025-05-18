@@ -27,4 +27,15 @@ public partial class VideoWindow : Window
 
         _mediaPlayer.Hwnd = TryGetPlatformHandle()!.Handle;
     }
+
+    public void OpenVideo(string videoPath)
+    {
+        if (_mediaPlayer == null || _libVlc == null || string.IsNullOrEmpty(videoPath))
+            return;
+
+        var media = new Media(_libVlc, videoPath);
+        _mediaPlayer.Play(media);
+        media.Dispose();
+    }
 }
+
