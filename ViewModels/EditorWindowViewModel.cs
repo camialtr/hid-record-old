@@ -370,6 +370,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanStartRecording))]
     private void StartRecording()
     {
+        _videoWindow.MediaPlayer.Play();
     }
 
     [RelayCommand(CanExecute = nameof(IsProjectOpen))]
@@ -557,9 +558,11 @@ public partial class EditorWindowViewModel : ViewModelBase
             await SaveProjectChanges();
 
             var accdataPath = Path.Combine(ProjectPath, "accdata");
+            
             if (Directory.Exists(accdataPath))
             {
                 var hidFilePath = Path.Combine(accdataPath, $"{sessionName}.json");
+                
                 if (File.Exists(hidFilePath))
                 {
                     File.Delete(hidFilePath);

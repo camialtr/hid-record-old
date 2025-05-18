@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -8,12 +7,15 @@ using HidRecorder.Models;
 using LibVLCSharp.Shared;
 using Newtonsoft.Json;
 
+// ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+// ReSharper disable SpecifyACultureInStringConversionExplicitly
+
 namespace HidRecorder.Views;
 
 public partial class VideoWindow : Window
 {
     private readonly LibVLC? _libVlc;
-    private readonly MediaPlayer? _mediaPlayer;
+    public readonly MediaPlayer? MediaPlayer;
     
     public VideoWindow()
     {
@@ -29,17 +31,17 @@ public partial class VideoWindow : Window
         Position = position;
             
         _libVlc = new LibVLC();
-        _mediaPlayer = new MediaPlayer(_libVlc);
+        MediaPlayer = new MediaPlayer(_libVlc);
 
-        _mediaPlayer.Hwnd = TryGetPlatformHandle()!.Handle;
+        MediaPlayer.Hwnd = TryGetPlatformHandle()!.Handle;
     }
 
     public async Task OpenVideo(string videoPath, string audioPath, string musicTrackPath)
     {
-        if (_mediaPlayer == null || _libVlc == null || string.IsNullOrEmpty(videoPath))
+        if (MediaPlayer == null || _libVlc == null || string.IsNullOrEmpty(videoPath))
             return;
 
-        var musicTrack = JsonConvert.DeserializeObject<MusicTrack>(File.ReadAllText(musicTrackPath));
+        var musicTrack = JsonConvert.DeserializeObject<MusicTrack>(await File.ReadAllTextAsync(musicTrackPath));
         
         var videoStartTime = musicTrack?.COMPONENTS?[0]?.trackData?.structure?.videoStartTime != null
             ? float.Parse(musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""))
@@ -58,15 +60,15 @@ public partial class VideoWindow : Window
             $":audio-desync={(videoStartTime - (startBeat / 48000f)) * 1000f}"
         ]);
 
-        await media.Parse(MediaParseOptions.ParseLocal);
+        await media.Parse();
 
         media.AddSlave(MediaSlaveType.Audio, 0, new Uri(audioPath).AbsoluteUri);
 
-        _mediaPlayer.Play(media);
+        MediaPlayer.Play(media);
 
         await Task.Delay(100);
 
-        _mediaPlayer.Pause();
+        MediaPlayer.Pause();
     }
 }
 
