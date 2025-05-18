@@ -57,12 +57,12 @@
                 <Label Grid.Column="1"
                        VerticalAlignment="Center"
                        Margin="0,5,10,0"
-                       Content="{CompiledBinding ServerContent}" />
+                       Content="{CompiledBinding ServerDataContent}" />
 
                 <Button Grid.Column="2"
                         Margin="0,7,10,3"
                         VerticalAlignment="Center"
-                        Content="Start Server"
+                        Content="{CompiledBinding ServerContent}"
                         Command="{CompiledBinding StartServerCommand}" />
             </Grid>
 
