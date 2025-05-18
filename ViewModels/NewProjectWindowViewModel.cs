@@ -148,7 +148,7 @@ public partial class NewProjectWindowViewModel : ViewModelBase
                 Name = ProjectName,
                 Video = videoFileName,
                 Audio = audioFileName,
-                MusicTrack = musicTrackFileName,
+                MusicTrack = musicTrackFileName.Replace(".tpl.ckd", ".json"),
                 Sessions = [example01Session, example02Session]
             };
             
