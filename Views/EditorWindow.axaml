@@ -87,7 +87,7 @@
                         <Button Content="{CompiledBinding RecordingButtonContent}"
                                 Margin="5,0,10,0"
                                 Command="{CompiledBinding StartRecordingCommand}" />
-                        <Label Content="Time: 00:00ms / 00:00ms"
+                        <Label Content="{CompiledBinding VideoTimeDisplay}"
                                VerticalContentAlignment="Center" />
                     </StackPanel>
 

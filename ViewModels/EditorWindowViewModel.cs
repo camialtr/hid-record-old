@@ -26,6 +26,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     [ObservableProperty] private string _recordingButtonContent = "Start Recording";
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private bool _gridsEnabled = true;
+    [ObservableProperty] private string _videoTimeDisplay = "Time: 00:00ms / 00:00ms";
 
     private bool _isFirstPlay = true;
 
@@ -719,10 +720,16 @@ public partial class EditorWindowViewModel : ViewModelBase
             return;
         }
 
+        if (_videoWindow?.MediaPlayer != null)
+        {
+            var currentTime = _videoWindow.MediaPlayer.Time;
+            var totalTime = _videoWindow.MediaPlayer.Length;
+            VideoTimeDisplay = $"Time: {currentTime / 1000f}ms / {totalTime / 1000f}ms";
+        }
+
         var masterString = string.Empty;
-
         var lNd = _server.NetworkData;
-
+        
         IsServerReceivingData = _samplesPerSecond > 0;
 
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
