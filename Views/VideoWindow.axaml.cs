@@ -1,11 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Threading.Tasks;
 using Avalonia;
+using System.IO;
+using Newtonsoft.Json;
 using Avalonia.Controls;
 using HidRecorder.Models;
 using LibVLCSharp.Shared;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 // ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
@@ -69,6 +69,8 @@ public partial class VideoWindow : Window
         await Task.Delay(100);
 
         MediaPlayer.Pause();
+        
+        Hide();
     }
 }
 

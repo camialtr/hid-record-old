@@ -5,15 +5,16 @@ using MsBox.Avalonia;
 using Newtonsoft.Json;
 using Avalonia.Controls;
 using HidRecorder.Views;
+using Avalonia.Threading;
 using HidRecorder.Models;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 // ReSharper disable UnusedParameterInPartialMethod
 
 namespace HidRecorder.ViewModels;
@@ -22,6 +23,11 @@ public partial class EditorWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private string _serverContent = "Start Server";
     [ObservableProperty] private string _serverDataContent = string.Empty;
+    [ObservableProperty] private string _recordingButtonContent = "Start Recording";
+    [ObservableProperty] private bool _isRecording;
+    [ObservableProperty] private bool _gridsEnabled = true;
+
+    private bool _isFirstPlay = true;
 
     public ObservableCollection<Session> Sessions { get; } = [];
 
@@ -33,7 +39,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     private List<HidData> _selectedHidData = [];
 
     public bool HasSelectedHidData => SelectedHidData.Count > 0;
-    
+
     public void OnSelectedHidDataChanged()
     {
         OnPropertyChanged(nameof(SelectedHidData));
@@ -57,8 +63,7 @@ public partial class EditorWindowViewModel : ViewModelBase
 
     public bool HasSelectedSession => SelectedSession != null;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(StartRecordingCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(StartRecordingCommand))]
     private bool _isServerReceivingData;
 
     private Window? _parentWindow;
@@ -72,13 +77,13 @@ public partial class EditorWindowViewModel : ViewModelBase
         : string.Empty;
 
     private VideoWindow? _videoWindow;
-    
+
     private DispatcherTimer? _updateTimer;
     private DispatcherTimer? _sampleCountTimer;
     private int _lastSamplesCount;
     private int _fullSamplesCount;
     private int _samplesPerSecond;
-    
+
     private Server? _server;
 
     public void SetParentWindow(Window window)
@@ -123,6 +128,7 @@ public partial class EditorWindowViewModel : ViewModelBase
         };
 
         var result = await storageProvider.OpenFilePickerAsync(filePickerOptions);
+        
         if (result.Count > 0)
         {
             await OpenProjectFile(result[0].Path.LocalPath);
@@ -194,19 +200,19 @@ public partial class EditorWindowViewModel : ViewModelBase
             MessageBoxManager.GetMessageBoxStandard("Error", $"Error when opening the project: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void Resized(VideoPositionInfo info)
     {
         if (_videoWindow == null)
         {
             _videoWindow = new VideoWindow(info.Width, info.Height, info.Position);
-            
+
             if (_parentWindow is { } parentWindow)
             {
                 _videoWindow.Tag = parentWindow;
             }
-            
+
             _videoWindow.Show();
         }
         else
@@ -365,12 +371,40 @@ public partial class EditorWindowViewModel : ViewModelBase
         }
     }
 
-    private bool CanStartRecording() => IsProjectOpen && SelectedSession != null && _server?.Connected == true && IsServerReceivingData;
+    private bool CanStartRecording() => IsProjectOpen && SelectedSession != null && _server?.Connected == true &&
+                                        IsServerReceivingData;
 
     [RelayCommand(CanExecute = nameof(CanStartRecording))]
     private void StartRecording()
     {
-        _videoWindow.MediaPlayer.Play();
+        if (!IsRecording)
+        {
+            if (_videoWindow is not null)
+            {
+                if (!_isFirstPlay)
+                {
+                    _videoWindow.MediaPlayer.Time = 0;
+                }
+                _isFirstPlay = false;
+                _videoWindow.MediaPlayer.Play();
+                _videoWindow.Show();
+                _videoWindow.Topmost = true;
+            }
+            IsRecording = true;
+            GridsEnabled = false;
+            RecordingButtonContent = "Stop Recording";
+        }
+        else
+        {
+            if (_videoWindow is not null)
+            {
+                _videoWindow.MediaPlayer.Stop();
+                _videoWindow.Hide();
+            }
+            IsRecording = false;
+            GridsEnabled = true;
+            RecordingButtonContent = "Start Recording";
+        }
     }
 
     [RelayCommand(CanExecute = nameof(IsProjectOpen))]
@@ -558,11 +592,11 @@ public partial class EditorWindowViewModel : ViewModelBase
             await SaveProjectChanges();
 
             var accdataPath = Path.Combine(ProjectPath, "accdata");
-            
+
             if (Directory.Exists(accdataPath))
             {
                 var hidFilePath = Path.Combine(accdataPath, $"{sessionName}.json");
-                
+
                 if (File.Exists(hidFilePath))
                 {
                     File.Delete(hidFilePath);
@@ -630,26 +664,26 @@ public partial class EditorWindowViewModel : ViewModelBase
             await ShowErrorMessage($"Error deleting HID data entries: {ex.Message}", "Deletion Error");
         }
     }
-    
+
     public void MinimizeVideoWindow()
     {
         if (_videoWindow == null) return;
         _videoWindow.Topmost = false;
     }
-    
+
     public void RestoreVideoWindow()
     {
         if (_videoWindow == null) return;
         _videoWindow.Topmost = true;
     }
-    
+
     public void CloseVideoWindow()
     {
         if (_videoWindow == null) return;
         _videoWindow.Close();
         _videoWindow = null;
     }
-    
+
     private void SetupSampleCallLoop()
     {
         _updateTimer = new DispatcherTimer
@@ -666,7 +700,7 @@ public partial class EditorWindowViewModel : ViewModelBase
         _sampleCountTimer.Tick += (_, _) => UpdateSamplesPerSecond();
         _sampleCountTimer.Start();
     }
-    
+
     private void CallSample()
     {
         if (_server is not null && _server.ExceptionCalled)
@@ -688,7 +722,7 @@ public partial class EditorWindowViewModel : ViewModelBase
         var masterString = string.Empty;
 
         var lNd = _server.NetworkData;
-        
+
         IsServerReceivingData = _samplesPerSecond > 0;
 
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
@@ -712,3 +746,4 @@ public partial class EditorWindowViewModel : ViewModelBase
         _lastSamplesCount = _fullSamplesCount;
     }
 }
+
