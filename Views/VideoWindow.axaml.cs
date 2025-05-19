@@ -16,6 +16,7 @@ public partial class VideoWindow : Window
 {
     private readonly LibVLC? _libVlc;
     public readonly MediaPlayer? MediaPlayer;
+    public float VideoStartTime { get; private set; }
     
     public VideoWindow()
     {
@@ -43,7 +44,7 @@ public partial class VideoWindow : Window
 
         var musicTrack = JsonConvert.DeserializeObject<MusicTrack>(await File.ReadAllTextAsync(musicTrackPath));
         
-        var videoStartTime = musicTrack?.COMPONENTS?[0]?.trackData?.structure?.videoStartTime != null
+        VideoStartTime = musicTrack?.COMPONENTS?[0]?.trackData?.structure?.videoStartTime != null
             ? float.Parse(musicTrack.COMPONENTS[0].trackData.structure.videoStartTime.ToString().Replace("-", ""))
             : 0f;
 
@@ -57,7 +58,7 @@ public partial class VideoWindow : Window
         
         var media = new Media(_libVlc, videoPath, FromType.FromPath,
         [
-            $":audio-desync={(videoStartTime - (startBeat / 48000f)) * 1000f}"
+            $":audio-desync={(VideoStartTime - (startBeat / 48000f)) * 1000f}"
         ]);
 
         await media.Parse();

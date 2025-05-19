@@ -766,13 +766,15 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         if (_videoWindow?.MediaPlayer != null)
         {
-            var currentVideoSeconds = _videoWindow.MediaPlayer.Time / 1000.0;
-            var totalVideoSeconds = _videoWindow.MediaPlayer.Length / 1000.0;
-            var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds;
+            Console.WriteLine(-_videoWindow.VideoStartTime);
+            var currentVideoSeconds = (_videoWindow.MediaPlayer.Time / 1000.0) - _videoWindow.VideoStartTime;
+            var totalVideoSeconds = (_videoWindow.MediaPlayer.Length / 1000.0) - _videoWindow.VideoStartTime;
+            var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds - _videoWindow.VideoStartTime;
+            
             VideoTimeDisplay =
                 $"VT {currentVideoSeconds:F6}s | {recordingSeconds:F6}s RT | Total - {totalVideoSeconds:F6}s";
 
-            if (IsRecording && currentVideoSeconds >= totalVideoSeconds)
+            if (IsRecording && recordingSeconds >= totalVideoSeconds)
             {
                 StartRecordingCommand.Execute(this);
             }
@@ -798,8 +800,11 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         if (!IsRecording) return;
         
+        var adjustedTime = (float)(_recordingStopwatch.Elapsed.TotalSeconds - _videoWindow.VideoStartTime);
+        if (adjustedTime < 0) return;
+        
         var newSample = new HidData(
-            (float)_recordingStopwatch.Elapsed.TotalSeconds,
+            adjustedTime,
             NormalizeValue(lNd.AccelX),
             NormalizeValue(lNd.AccelY),
             NormalizeValue(lNd.AccelZ),
