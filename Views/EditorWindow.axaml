@@ -98,33 +98,31 @@
                                Classes="sectionHeader"
                                Content="Sessions" />
 
-                        <ScrollViewer Grid.Row="1">
-                            <DataGrid ItemsSource="{CompiledBinding Sessions}"
-                                      SelectedItem="{CompiledBinding SelectedSession}"
-                                      MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                      SelectionMode="Single"
-                                      IsEnabled="{CompiledBinding GridsEnabled}"
-                                      CellEditEnded="SessionsGrid_CellEditEnded">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Platform"
-                                                        Binding="{CompiledBinding Platform}"
-                                                        IsReadOnly="True" />
-                                    <DataGridTextColumn Header="Name"
-                                                        Binding="{CompiledBinding Name}" />
-                                    <DataGridCheckBoxColumn Header="Export"
-                                                            Binding="{CompiledBinding Export}" />
-                                </DataGrid.Columns>
+                        <DataGrid Grid.Row="1" ItemsSource="{CompiledBinding Sessions}"
+                                  SelectedItem="{CompiledBinding SelectedSession}"
+                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                                  SelectionMode="Single"
+                                  IsEnabled="{CompiledBinding GridsEnabled}"
+                                  CellEditEnded="SessionsGrid_CellEditEnded">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Platform"
+                                                    Binding="{CompiledBinding Platform}"
+                                                    IsReadOnly="True" />
+                                <DataGridTextColumn Header="Name"
+                                                    Binding="{CompiledBinding Name}" />
+                                <DataGridCheckBoxColumn Header="Export"
+                                                        Binding="{CompiledBinding Export}" />
+                            </DataGrid.Columns>
 
-                                <DataGrid.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}"
-                                                  Command="{Binding NewSessionCommand}" />
-                                        <MenuItem Header="Delete" IsEnabled="{CompiledBinding HasSelectedSession}"
-                                                  Command="{Binding DeleteSessionCommand}" />
-                                    </ContextMenu>
-                                </DataGrid.ContextMenu>
-                            </DataGrid>
-                        </ScrollViewer>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="New" IsEnabled="{CompiledBinding IsProjectOpen}"
+                                              Command="{Binding NewSessionCommand}" />
+                                    <MenuItem Header="Delete" IsEnabled="{CompiledBinding HasSelectedSession}"
+                                              Command="{Binding DeleteSessionCommand}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
                     </Grid>
                 </Grid>
 
@@ -162,4 +160,3 @@
         </DockPanel>
     </Grid>
 </Window>
-
