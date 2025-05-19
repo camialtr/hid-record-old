@@ -6,7 +6,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <ApplicationIcon>Assets\avalonia-logo.ico</ApplicationIcon>
+        <ApplicationIcon>Assets\rec-ico.ico</ApplicationIcon>
         <Company>@meltedm_</Company>
         <Product>HID Recorder</Product>
         <AssemblyVersion>0.5.0</AssemblyVersion>
