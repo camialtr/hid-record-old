@@ -34,7 +34,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _gridsEnabled = true;
 
     [ObservableProperty]
-    private string _videoTimeDisplay = $"Video - 0,000000s | 0,000000s - Recording | Total - 0,000000s";
+    private string _videoTimeDisplay = string.Empty;
 
     private bool _isFirstPlay = true;
 
@@ -386,11 +386,10 @@ public partial class EditorWindowViewModel : ViewModelBase
                                         IsServerReceivingData;
 
     [RelayCommand(CanExecute = nameof(CanStartRecording))]
-    private async void StartRecording()
+    private async Task StartRecording()
     {
         if (!IsRecording)
         {
-            // Limpa a lista de HidData ao começar a gravação
             HidData.Clear();
 
             if (_videoWindow is not null)
@@ -428,7 +427,6 @@ public partial class EditorWindowViewModel : ViewModelBase
             RecordingButtonContent = "Start Recording";
             VideoTimeDisplay = "Video: 0.0s / 0.0s | Recording: 0.0s";
 
-            // Salva os dados coletados no arquivo
             if (SelectedSession != null)
             {
                 var accdataPath = Path.Combine(ProjectPath, "accdata");
@@ -740,6 +738,14 @@ public partial class EditorWindowViewModel : ViewModelBase
         _sampleCountTimer.Start();
     }
 
+    private float NormalizeValue(float value)
+    {
+        if (Math.Abs(value) < 0.000001f)
+            return 0f;
+        
+        return (float)Math.Round(value, 6);
+    }
+
     private void CallSample()
     {
         if (_server is not null && _server.ExceptionCalled)
@@ -764,7 +770,7 @@ public partial class EditorWindowViewModel : ViewModelBase
             var totalVideoSeconds = _videoWindow.MediaPlayer.Length / 1000.0;
             var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds;
             VideoTimeDisplay =
-                $"Video - {currentVideoSeconds:F6}s | {recordingSeconds:F6}s - Recording | Total - {totalVideoSeconds:F6}s";
+                $"VT {currentVideoSeconds:F6}s | {recordingSeconds:F6}s RT | Total - {totalVideoSeconds:F6}s";
 
             if (IsRecording && currentVideoSeconds >= totalVideoSeconds)
             {
@@ -792,8 +798,15 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         if (!IsRecording) return;
         
-        var newSample = new HidData((float)_recordingStopwatch.Elapsed.TotalSeconds, lNd.AccelX, lNd.AccelY,
-            lNd.AccelZ, lNd.AngleX, lNd.AngleY, lNd.AngleZ);
+        var newSample = new HidData(
+            (float)_recordingStopwatch.Elapsed.TotalSeconds,
+            NormalizeValue(lNd.AccelX),
+            NormalizeValue(lNd.AccelY),
+            NormalizeValue(lNd.AccelZ),
+            NormalizeValue(lNd.AngleX),
+            NormalizeValue(lNd.AngleY),
+            NormalizeValue(lNd.AngleZ)
+        );
 
         HidData.Add(newSample);
     }
