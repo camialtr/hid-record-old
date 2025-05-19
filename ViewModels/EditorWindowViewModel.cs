@@ -13,6 +13,7 @@ using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
@@ -474,6 +475,15 @@ public partial class EditorWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private static void Exit() => Environment.Exit(0);
+
+    [RelayCommand]
+    private static void OpenSettings()
+    {
+        var settingsWindow = new SettingsWindow();
+        if (Application.Current?.ApplicationLifetime is not
+            Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop) return;
+        if (desktop.MainWindow != null) settingsWindow.ShowDialog(desktop.MainWindow);
+    }
 
     partial void OnSelectedSessionChanged(Session? oldValue, Session? newValue)
     {

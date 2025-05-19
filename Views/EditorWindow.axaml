@@ -52,7 +52,7 @@
                             <MenuItem Header="M.A.R.S. Recordings (*.rec)" />
                         </MenuItem>
                         <Separator />
-                        <MenuItem Header="Settings" />
+                        <MenuItem Header="Settings" Command="{CompiledBinding OpenSettingsCommand}" />
                         <Separator />
                         <MenuItem Header="Exit" Command="{CompiledBinding ExitCommand}" />
                     </MenuItem>
@@ -160,3 +160,4 @@
         </DockPanel>
     </Grid>
 </Window>
+
