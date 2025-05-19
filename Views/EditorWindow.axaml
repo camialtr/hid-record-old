@@ -134,31 +134,29 @@
                            Classes="sectionHeader"
                            Content="HID Data" />
 
-                    <ScrollViewer Grid.Row="1">
-                        <DataGrid ItemsSource="{CompiledBinding HidData}"
-                                  MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
-                                  SelectionChanged="HidDataGrid_SelectionChanged"
-                                  IsEnabled="{CompiledBinding GridsEnabled}"
-                                  IsReadOnly="True">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
-                                <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />
-                                <DataGridTextColumn Header="AccelY" Binding="{CompiledBinding AccelY}" />
-                                <DataGridTextColumn Header="AccelZ" Binding="{CompiledBinding AccelZ}" />
-                                <DataGridTextColumn Header="AngleX" Binding="{CompiledBinding AngleX}" />
-                                <DataGridTextColumn Header="AngleY" Binding="{CompiledBinding AngleY}" />
-                                <DataGridTextColumn Header="AngleZ" Binding="{CompiledBinding AngleZ}" />
-                            </DataGrid.Columns>
+                    <DataGrid Grid.Row="1" ItemsSource="{CompiledBinding HidData}"
+                              MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=Bounds.Width}"
+                              SelectionChanged="HidDataGrid_SelectionChanged"
+                              IsEnabled="{CompiledBinding GridsEnabled}"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Time" Binding="{CompiledBinding Time}" />
+                            <DataGridTextColumn Header="AccelX" Binding="{CompiledBinding AccelX}" />
+                            <DataGridTextColumn Header="AccelY" Binding="{CompiledBinding AccelY}" />
+                            <DataGridTextColumn Header="AccelZ" Binding="{CompiledBinding AccelZ}" />
+                            <DataGridTextColumn Header="AngleX" Binding="{CompiledBinding AngleX}" />
+                            <DataGridTextColumn Header="AngleY" Binding="{CompiledBinding AngleY}" />
+                            <DataGridTextColumn Header="AngleZ" Binding="{CompiledBinding AngleZ}" />
+                        </DataGrid.Columns>
 
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Delete"
-                                              IsEnabled="{CompiledBinding HasSelectedHidData}"
-                                              Command="{Binding DeleteSelectedHidDataCommand}" />
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
-                        </DataGrid>
-                    </ScrollViewer>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Delete"
+                                          IsEnabled="{CompiledBinding HasSelectedHidData}"
+                                          Command="{Binding DeleteSelectedHidDataCommand}" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
                 </Grid>
             </Grid>
         </DockPanel>

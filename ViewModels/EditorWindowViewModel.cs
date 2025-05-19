@@ -32,7 +32,9 @@ public partial class EditorWindowViewModel : ViewModelBase
     private bool _isRecording;
 
     [ObservableProperty] private bool _gridsEnabled = true;
-    [ObservableProperty] private string _videoTimeDisplay = $"Video - 0,000000s | 0,000000s - Recording | Total - 0,000000s";
+
+    [ObservableProperty]
+    private string _videoTimeDisplay = $"Video - 0,000000s | 0,000000s - Recording | Total - 0,000000s";
 
     private bool _isFirstPlay = true;
 
@@ -384,10 +386,13 @@ public partial class EditorWindowViewModel : ViewModelBase
                                         IsServerReceivingData;
 
     [RelayCommand(CanExecute = nameof(CanStartRecording))]
-    private void StartRecording()
+    private async void StartRecording()
     {
         if (!IsRecording)
         {
+            // Limpa a lista de HidData ao começar a gravação
+            HidData.Clear();
+
             if (_videoWindow is not null)
             {
                 if (!_isFirstPlay)
@@ -422,6 +427,20 @@ public partial class EditorWindowViewModel : ViewModelBase
             GridsEnabled = true;
             RecordingButtonContent = "Start Recording";
             VideoTimeDisplay = "Video: 0.0s / 0.0s | Recording: 0.0s";
+
+            // Salva os dados coletados no arquivo
+            if (SelectedSession != null)
+            {
+                var accdataPath = Path.Combine(ProjectPath, "accdata");
+                if (!Directory.Exists(accdataPath))
+                {
+                    Directory.CreateDirectory(accdataPath);
+                }
+
+                var hidDataFilePath = Path.Combine(accdataPath, $"{SelectedSession.Name}.json");
+                var hidDataJson = JsonConvert.SerializeObject(HidData, Formatting.Indented);
+                await File.WriteAllTextAsync(hidDataFilePath, hidDataJson);
+            }
         }
     }
 
@@ -747,17 +766,16 @@ public partial class EditorWindowViewModel : ViewModelBase
             VideoTimeDisplay =
                 $"Video - {currentVideoSeconds:F6}s | {recordingSeconds:F6}s - Recording | Total - {totalVideoSeconds:F6}s";
 
-            if (IsRecording && recordingSeconds >= totalVideoSeconds)
+            if (IsRecording && currentVideoSeconds >= totalVideoSeconds)
             {
                 StartRecordingCommand.Execute(this);
             }
         }
 
-        var masterString = string.Empty;
         var lNd = _server.NetworkData;
-
         IsServerReceivingData = _samplesPerSecond > 0;
 
+        var masterString = string.Empty;
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
         var accelY = $"{lNd.AccelY:F9}".PadRight(9, '0')[..9];
         var accelZ = $"{lNd.AccelZ:F9}".PadRight(9, '0')[..9];
@@ -771,6 +789,13 @@ public partial class EditorWindowViewModel : ViewModelBase
         ServerDataContent = masterString;
 
         _fullSamplesCount++;
+
+        if (!IsRecording) return;
+        
+        var newSample = new HidData((float)_recordingStopwatch.Elapsed.TotalSeconds, lNd.AccelX, lNd.AccelY,
+            lNd.AccelZ, lNd.AngleX, lNd.AngleY, lNd.AngleZ);
+
+        HidData.Add(newSample);
     }
 
     private void UpdateSamplesPerSecond()
@@ -779,4 +804,3 @@ public partial class EditorWindowViewModel : ViewModelBase
         _lastSamplesCount = _fullSamplesCount;
     }
 }
-
