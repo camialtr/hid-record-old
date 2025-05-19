@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using HidRecorder.Views;
 using Avalonia.Threading;
 using HidRecorder.Models;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
@@ -24,9 +25,14 @@ public partial class EditorWindowViewModel : ViewModelBase
     [ObservableProperty] private string _serverContent = "Start Server";
     [ObservableProperty] private string _serverDataContent = string.Empty;
     [ObservableProperty] private string _recordingButtonContent = "Start Recording";
-    [ObservableProperty] private bool _isRecording;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StartRecordingCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartServerCommand))]
+    private bool _isRecording;
+
     [ObservableProperty] private bool _gridsEnabled = true;
-    [ObservableProperty] private string _videoTimeDisplay = "Time: 00:00ms / 00:00ms";
+    [ObservableProperty] private string _videoTimeDisplay = $"Video - 0,000000s | 0,000000s - Recording | Total - 0,000000s";
 
     private bool _isFirstPlay = true;
 
@@ -87,6 +93,8 @@ public partial class EditorWindowViewModel : ViewModelBase
 
     private Server? _server;
 
+    private readonly Stopwatch _recordingStopwatch = new();
+
     public void SetParentWindow(Window window)
     {
         _parentWindow = window;
@@ -129,7 +137,7 @@ public partial class EditorWindowViewModel : ViewModelBase
         };
 
         var result = await storageProvider.OpenFilePickerAsync(filePickerOptions);
-        
+
         if (result.Count > 0)
         {
             await OpenProjectFile(result[0].Path.LocalPath);
@@ -385,12 +393,16 @@ public partial class EditorWindowViewModel : ViewModelBase
                 if (!_isFirstPlay)
                 {
                     _videoWindow.MediaPlayer.Time = 0;
+                    _recordingStopwatch.Reset();
                 }
+
                 _isFirstPlay = false;
                 _videoWindow.MediaPlayer.Play();
+                _recordingStopwatch.Start();
                 _videoWindow.Show();
                 _videoWindow.Topmost = true;
             }
+
             IsRecording = true;
             GridsEnabled = false;
             RecordingButtonContent = "Stop Recording";
@@ -400,15 +412,22 @@ public partial class EditorWindowViewModel : ViewModelBase
             if (_videoWindow is not null)
             {
                 _videoWindow.MediaPlayer.Stop();
+                _videoWindow.MediaPlayer.Time = 0;
+                _recordingStopwatch.Reset();
                 _videoWindow.Hide();
+                _isFirstPlay = true;
             }
+
             IsRecording = false;
             GridsEnabled = true;
             RecordingButtonContent = "Start Recording";
+            VideoTimeDisplay = "Video: 0.0s / 0.0s | Recording: 0.0s";
         }
     }
 
-    [RelayCommand(CanExecute = nameof(IsProjectOpen))]
+    private bool CanStartServer() => IsProjectOpen && !IsRecording;
+
+    [RelayCommand(CanExecute = nameof(CanStartServer))]
     private void StartServer()
     {
         if (_server is not null && !_server.Connected || _server is not null && _server.ExceptionCalled)
@@ -722,14 +741,16 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         if (_videoWindow?.MediaPlayer != null)
         {
-            var currentTime = _videoWindow.MediaPlayer.Time;
-            var totalTime = _videoWindow.MediaPlayer.Length;
-            VideoTimeDisplay = $"Time: {currentTime / 1000f}ms / {totalTime / 1000f}ms";
+            var currentVideoSeconds = _videoWindow.MediaPlayer.Time / 1000.0;
+            var totalVideoSeconds = _videoWindow.MediaPlayer.Length / 1000.0;
+            var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds;
+            VideoTimeDisplay =
+                $"Video - {currentVideoSeconds:F6}s | {recordingSeconds:F6}s - Recording | Total - {totalVideoSeconds:F6}s";
         }
 
         var masterString = string.Empty;
         var lNd = _server.NetworkData;
-        
+
         IsServerReceivingData = _samplesPerSecond > 0;
 
         var accelX = $"{lNd.AccelX:F9}".PadRight(9, '0')[..9];
@@ -753,4 +774,3 @@ public partial class EditorWindowViewModel : ViewModelBase
         _lastSamplesCount = _fullSamplesCount;
     }
 }
-

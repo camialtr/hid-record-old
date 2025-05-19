@@ -31,7 +31,7 @@
         </Style>
 
         <Style Selector="DataGrid:disabled">
-            <Setter Property="Opacity" Value="0.25" />
+            <Setter Property="Opacity" Value="0.5" />
         </Style>
 
         <Style Selector="ScrollViewer">
@@ -88,7 +88,8 @@
                                 Margin="5,0,10,0"
                                 Command="{CompiledBinding StartRecordingCommand}" />
                         <Label Content="{CompiledBinding VideoTimeDisplay}"
-                               VerticalContentAlignment="Center" />
+                               VerticalContentAlignment="Center"
+                               IsVisible="{CompiledBinding IsRecording}" />
                     </StackPanel>
 
                     <!-- Sessions Section -->
