@@ -458,9 +458,9 @@ public partial class EditorWindowViewModel : ViewModelBase
 
         if (_server is null)
         {
-            _server = new Server("192.168.1.7", 14444);
+            _server = new Server(App.Settings.CurrentIp, 14444);
             ServerContent = "Stop Server";
-            ServerDataContent = "Listening at 192.168.1.7 - Waiting for data...";
+            ServerDataContent = $"Listening at {App.Settings.CurrentIp} - Waiting for data...";
             return;
         }
 
