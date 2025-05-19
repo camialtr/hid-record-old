@@ -746,6 +746,11 @@ public partial class EditorWindowViewModel : ViewModelBase
             var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds;
             VideoTimeDisplay =
                 $"Video - {currentVideoSeconds:F6}s | {recordingSeconds:F6}s - Recording | Total - {totalVideoSeconds:F6}s";
+
+            if (IsRecording && recordingSeconds >= totalVideoSeconds)
+            {
+                StartRecordingCommand.Execute(this);
+            }
         }
 
         var masterString = string.Empty;
@@ -774,3 +779,4 @@ public partial class EditorWindowViewModel : ViewModelBase
         _lastSamplesCount = _fullSamplesCount;
     }
 }
+
