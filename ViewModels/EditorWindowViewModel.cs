@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia;
 using System.IO;
 using System.Linq;
 using MsBox.Avalonia;
@@ -13,9 +14,9 @@ using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 
+// ReSharper disable SpecifyACultureInStringConversionExplicitly
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
 // ReSharper disable UnusedParameterInPartialMethod
 
@@ -748,12 +749,23 @@ public partial class EditorWindowViewModel : ViewModelBase
         _sampleCountTimer.Start();
     }
 
-    private float NormalizeValue(float value)
+    private static float NormalizeValue(float value)
     {
         if (Math.Abs(value) < 0.000001f)
             return 0f;
         
         return (float)Math.Round(value, 6);
+    }
+
+    private static bool HasScientificNotation(float value)
+    {
+        var stringValue = value.ToString();
+        return stringValue.Contains('E') || stringValue.Contains('e');
+    }
+
+    private static bool HasAnyScientificNotation(params float[] values)
+    {
+        return values.Any(HasScientificNotation);
     }
 
     private void CallSample()
@@ -813,14 +825,28 @@ public partial class EditorWindowViewModel : ViewModelBase
         var adjustedTime = (float)(_recordingStopwatch.Elapsed.TotalSeconds - _videoWindow.VideoStartTime);
         if (adjustedTime < 0) return;
         
+        var normalizedAccelX = NormalizeValue(lNd.AccelX);
+        var normalizedAccelY = NormalizeValue(lNd.AccelY);
+        var normalizedAccelZ = NormalizeValue(lNd.AccelZ);
+        var normalizedAngleX = NormalizeValue(lNd.AngleX);
+        var normalizedAngleY = NormalizeValue(lNd.AngleY);
+        var normalizedAngleZ = NormalizeValue(lNd.AngleZ);
+
+        if (HasAnyScientificNotation(
+            normalizedAccelX, normalizedAccelY, normalizedAccelZ,
+            normalizedAngleX, normalizedAngleY, normalizedAngleZ))
+        {
+            return;
+        }
+
         var newSample = new HidData(
             adjustedTime,
-            NormalizeValue(lNd.AccelX),
-            NormalizeValue(lNd.AccelY),
-            NormalizeValue(lNd.AccelZ),
-            NormalizeValue(lNd.AngleX),
-            NormalizeValue(lNd.AngleY),
-            NormalizeValue(lNd.AngleZ)
+            normalizedAccelX,
+            normalizedAccelY,
+            normalizedAccelZ,
+            normalizedAngleX,
+            normalizedAngleY,
+            normalizedAngleZ
         );
 
         HidData.Add(newSample);
