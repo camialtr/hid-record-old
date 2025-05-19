@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using RecTool;
 
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
@@ -35,8 +36,7 @@ public partial class EditorWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _gridsEnabled = true;
 
-    [ObservableProperty]
-    private string _videoTimeDisplay = string.Empty;
+    [ObservableProperty] private string _videoTimeDisplay = string.Empty;
 
     private bool _isFirstPlay = true;
 
@@ -753,7 +753,7 @@ public partial class EditorWindowViewModel : ViewModelBase
     {
         if (Math.Abs(value) < 0.000001f)
             return 0f;
-        
+
         return (float)Math.Round(value, 6);
     }
 
@@ -792,7 +792,7 @@ public partial class EditorWindowViewModel : ViewModelBase
             var currentVideoSeconds = (_videoWindow.MediaPlayer.Time / 1000.0) - _videoWindow.VideoStartTime;
             var totalVideoSeconds = (_videoWindow.MediaPlayer.Length / 1000.0) - _videoWindow.VideoStartTime;
             var recordingSeconds = _recordingStopwatch.Elapsed.TotalSeconds - _videoWindow.VideoStartTime;
-            
+
             VideoTimeDisplay =
                 $"VT {currentVideoSeconds:F6}s | {recordingSeconds:F6}s RT | Total - {totalVideoSeconds:F6}s";
 
@@ -821,10 +821,10 @@ public partial class EditorWindowViewModel : ViewModelBase
         _fullSamplesCount++;
 
         if (!IsRecording) return;
-        
+
         var adjustedTime = (float)(_recordingStopwatch.Elapsed.TotalSeconds - _videoWindow.VideoStartTime);
         if (adjustedTime < 0) return;
-        
+
         var normalizedAccelX = NormalizeValue(lNd.AccelX);
         var normalizedAccelY = NormalizeValue(lNd.AccelY);
         var normalizedAccelZ = NormalizeValue(lNd.AccelZ);
@@ -833,8 +833,8 @@ public partial class EditorWindowViewModel : ViewModelBase
         var normalizedAngleZ = NormalizeValue(lNd.AngleZ);
 
         if (HasAnyScientificNotation(
-            normalizedAccelX, normalizedAccelY, normalizedAccelZ,
-            normalizedAngleX, normalizedAngleY, normalizedAngleZ))
+                normalizedAccelX, normalizedAccelY, normalizedAccelZ,
+                normalizedAngleX, normalizedAngleY, normalizedAngleZ))
         {
             return;
         }
@@ -856,5 +856,93 @@ public partial class EditorWindowViewModel : ViewModelBase
     {
         _samplesPerSecond = _fullSamplesCount - _lastSamplesCount;
         _lastSamplesCount = _fullSamplesCount;
+    }
+
+    [RelayCommand]
+    private async Task ExportAsRecs()
+    {
+        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath) || SelectedSession == null)
+            return;
+
+        if (_parentWindow == null)
+            return;
+
+        var storageProvider = _parentWindow.StorageProvider;
+        var folderPickerOptions = new FolderPickerOpenOptions
+        {
+            Title = "Select Export Directory"
+        };
+
+        var result = await storageProvider.OpenFolderPickerAsync(folderPickerOptions);
+        if (result.Count == 0)
+            return;
+
+        var exportPath = result[0].Path.LocalPath;
+
+        foreach (var session in Sessions)
+        {
+            if (!session.Export) continue;
+
+            var accdataPath = Path.Combine(ProjectPath, "accdata");
+            var hidDataFilePath = Path.Combine(accdataPath, $"{session.Name}.json");
+
+            if (!File.Exists(hidDataFilePath))
+            {
+                Console.WriteLine($"HID data file not found for session {session.Name}");
+                continue;
+            }
+
+            var hidDataJson = await File.ReadAllTextAsync(hidDataFilePath);
+            var sessionHidData = JsonConvert.DeserializeObject<List<HidData>>(hidDataJson);
+
+            if (sessionHidData == null || sessionHidData.Count == 0)
+            {
+                Console.WriteLine($"No valid HID data found for session {session.Name}");
+                continue;
+            }
+
+            List<FieldDef> fieldDefList =
+            [
+                RecWriter.CreateFieldDef(RecDataFormat.FIELD_TIME, FieldUse.FieldUse_Time, false),
+                RecWriter.CreateFieldDef(RecDataFormat.FIELD_ACCEL_NX + "1_", FieldUse.FieldUse_MotionData, true),
+                RecWriter.CreateFieldDef(RecDataFormat.FIELD_GYRO_NX + "1A", FieldUse.FieldUse_MotionData, true)
+            ];
+
+            HeaderInfo headerInfo = new()
+            {
+                FieldDefList = fieldDefList,
+                MapName = CurrentProject.Name,
+                FormatName = "NX_ACCQD",
+                VersionId = 4U
+            };
+
+            var recFilePath = Path.Combine(exportPath, $"{session.Name}.rec");
+            var recWriter = new RecWriter(headerInfo, recFilePath);
+
+            foreach (var data in sessionHidData)
+            {
+                var chunkData = RecWriter.CreateChunkData(data.Time);
+                
+                chunkData.AddPadSample(
+                [
+                    new FieldSample
+                    {
+                        SampleFieldDef = RecWriter.CreateFieldDef(RecDataFormat.FIELD_ACCEL_NX + "1_",
+                            FieldUse.FieldUse_MotionData, true),
+                        FloatList = [data.AccelX, data.AccelY, data.AccelZ]
+                    },
+                    new FieldSample
+                    {
+                        SampleFieldDef = RecWriter.CreateFieldDef(RecDataFormat.FIELD_GYRO_NX + "1A",
+                            FieldUse.FieldUse_MotionData, true),
+                        FloatList = [data.AngleX, data.AngleY, data.AngleZ]
+                    }
+                ]);
+                
+                recWriter.AppendSample(chunkData);
+            }
+            
+            recWriter.SaveRec();
+        }
     }
 }

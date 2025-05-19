@@ -49,7 +49,8 @@
                         <MenuItem Header="New..." Command="{CompiledBinding NewCommand}" />
                         <MenuItem Header="Open..." Command="{CompiledBinding OpenCommand}" />
                         <MenuItem Header="Export As">
-                            <MenuItem Header="M.A.R.S. Recordings (*.rec)" />
+                            <MenuItem Header="M.A.R.S. Recordings (*.rec)"
+                                      Command="{CompiledBinding ExportAsRecsCommand}" />
                         </MenuItem>
                         <Separator />
                         <MenuItem Header="Settings" Command="{CompiledBinding OpenSettingsCommand}" />
@@ -160,4 +161,3 @@
         </DockPanel>
     </Grid>
 </Window>
-
