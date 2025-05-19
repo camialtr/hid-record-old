@@ -1,4 +1,5 @@
 ﻿using System;
+using RecTool;
 using Avalonia;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,6 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using RecTool;
 
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
@@ -858,10 +858,10 @@ public partial class EditorWindowViewModel : ViewModelBase
         _lastSamplesCount = _fullSamplesCount;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(IsProjectOpen))]
     private async Task ExportAsRecs()
     {
-        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath) || SelectedSession == null)
+        if (CurrentProject == null || string.IsNullOrEmpty(_projectFilePath))
             return;
 
         if (_parentWindow == null)
@@ -946,3 +946,4 @@ public partial class EditorWindowViewModel : ViewModelBase
         }
     }
 }
+
